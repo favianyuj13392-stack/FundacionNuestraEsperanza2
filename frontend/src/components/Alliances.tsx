@@ -4,7 +4,7 @@ import Image from 'next/image';
 const Alliances = () => {
   const logos = [
     { src: 'ic_latina.png', url: 'https://redalianzalatina.org/es/home-esp/' },
-    { src: 'ic_childhood.png', url: 'https://ccieurope.eu/' },
+    { src: 'ic_childhood.png', url: 'https://www.childhood-cancer-support.com/' },
     { src: 'ic_canica.jpeg', url: 'https://canica.org.mx/' },
     { src: 'ic_jude.jpg', url: 'https://www.stjude.org/es/' },
     { src: 'ic_matters.png', url: 'https://foundation-s-mychildmatters.opendatasoft.com/pages/home/' },
@@ -24,13 +24,13 @@ const Alliances = () => {
               href={logo.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="relative h-24 w-32 md:h-36 md:w-40 grayscale opacity-100 hover:grayscale-0 hover:opacity-100 transition duration-300"
+              className="relative h-20 w-20 sm:h-32 sm:w-24 md:h-48 md:w-52 grayscale opacity-100 hover:grayscale-0 hover:opacity-100 transition duration-300 basis-full sm:basis-auto"
             >
               <Image
-                src={`/IMG/${logo.src}`}
-                alt={`Logo aliado ${index + 1}`}
-                layout="fill"
-                objectFit="contain"
+              src={`/IMG/${logo.src}`}
+              alt={`Logo aliado ${index + 1}`}
+              layout="fill"
+              objectFit="contain"
               />
             </a>
           ))}

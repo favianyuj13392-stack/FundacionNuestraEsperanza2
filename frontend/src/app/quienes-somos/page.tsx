@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from 'react'; 
 import Image from 'next/image';
-import Slider from 'react-slick';
 import { motion } from 'framer-motion';
 
 // Estilos para el carrusel
@@ -15,8 +14,7 @@ import Quotes from '@/components/Quotes';
 import Suscribe from '@/components/Suscribe'; 
 import AboutUs from '@/components/AboutUs';
 import DonationModal from '@/components/DonationModal'; 
-
-
+import MissionVision from '@/components/MissionVision';
 
 const directorio = [
   { name: 'Mónica Mendez Saucedo', role: 'Presidente', image: '/IMG/equipo/directorio/MONICA-PRESIDENTE.jpeg' },
@@ -25,55 +23,9 @@ const directorio = [
   { name: 'María Teresa Quevedo Espinoza', role: 'Secretaria', image: '/IMG/equipo/directorio/MARIATERESA-SECRETARIA.jpeg' }
 ];
 
-const voluntarias = [
-  { name: 'Dolly Nanda', image: 'https://ui-avatars.com/api/?name=Dolly+Nanda&background=random&size=200' },
-  { name: 'Rosmery', image: 'https://ui-avatars.com/api/?name=Rosmery&background=random&size=200' },
-  { name: 'Carola', image: 'https://ui-avatars.com/api/?name=Carola&background=random&size=200' },
-  { name: 'Diva', image: 'https://ui-avatars.com/api/?name=Diva&background=random&size=200' },
-  { name: 'Gaby', image: 'https://ui-avatars.com/api/?name=Gaby&background=random&size=200' },
-  { name: 'Ma. Rene', image: 'https://ui-avatars.com/api/?name=Ma+Rene&background=random&size=200' },
-  { name: 'Mercedes', image: 'https://ui-avatars.com/api/?name=Mercedes&background=random&size=200' },
-  { name: 'Rosario', image: 'https://ui-avatars.com/api/?name=Rosario&background=random&size=200' },
-  { name: 'Sandra', image: 'https://ui-avatars.com/api/?name=Sandra&background=random&size=200' },
-  { name: 'Susana', image: 'https://ui-avatars.com/api/?name=Susana&background=random&size=200' },
-  { name: 'Verónica', image: 'https://ui-avatars.com/api/?name=Veronica&background=random&size=200' },
-  { name: 'Ximena', image: 'https://ui-avatars.com/api/?name=Ximena&background=random&size=200' },
-  { name: 'Yola', image: 'https://ui-avatars.com/api/?name=Yola&background=random&size=200' },
-];
-
 export default function AboutPage() {
   // 3. Estado del Modal
   const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
-  
-  const sliderSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 3000,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-        }
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 2,
-        }
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-        }
-      }
-    ]
-  };
 
   return (
     <main className="overflow-x-hidden">
@@ -99,7 +51,7 @@ export default function AboutPage() {
       </motion.section>
         
       <AboutUs />
-
+      <MissionVision />
       {/* Directorio */}
       <section className="bg-beige-claro py-16">
         <div className="container mx-auto px-6 text-center">
@@ -135,38 +87,6 @@ export default function AboutPage() {
             ))}
           </div>
 
-          {/* Voluntarias */}
-          <motion.h3 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: false }}
-            transition={{ duration: 0.8 }}
-            className="text-3xl font-bold text-azul-marino mb-8 font-title"
-          >
-            Voluntarias
-          </motion.h3>
-
-          <Slider {...sliderSettings}>
-            {voluntarias.map((volunteer) => (
-              <div key={volunteer.name} className="px-2">
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: false }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  whileHover={{ scale: 1.05, y: -10, boxShadow: "0px 15px 25px rgba(0,0,0,0.1)" }}
-                  className="flex flex-col items-center"
-                >
-                  <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-md mb-4 mx-auto">
-                    <Image src={volunteer.image} alt={volunteer.name} layout="fill" objectFit="cover" />
-                  </div>
-                  <h4 className="font-bold text-md font-title text-center text-gray-700">
-                    {volunteer.name}
-                  </h4>
-                </motion.div>
-              </div>
-            ))}
-          </Slider>
         </div>
       </section>
 

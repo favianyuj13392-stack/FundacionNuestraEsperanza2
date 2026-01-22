@@ -2,6 +2,7 @@
 import React, { useRef } from 'react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import Link from 'next/dist/client/link';
 
 // 1. Definimos la interfaz para recibir la función del modal
 interface HowToHelpProps {
@@ -88,12 +89,11 @@ const HowToHelp: React.FC<HowToHelpProps> = ({ onOpenDonationModal }) => {
           </motion.div>
         </div>
 
-        {/* Botón inferior (opcional, lo redirigimos a programas o contacto) */}
-        <div className="mt-12 text-center">
-          <a href="/como-ayudar" className="bg-turquesa-secundario text-white px-8 py-3 rounded-full font-bold hover:bg-azul-marino transition duration-300 inline-block font-button">
-            VER MÁS
-          </a>
-        </div>
+        <div className="text-center mt-12">
+            <Link href="/como-ayudar" className="inline-block bg-turquesa-secundario text-white px-8 py-3 rounded-full font-bold hover:bg-azul-marino transition duration-300 font-button">
+                VER MÁS
+            </Link>
+          </div>
       </div>
     </section>
   );

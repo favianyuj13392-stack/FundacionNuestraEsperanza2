@@ -25,9 +25,9 @@ function Counter({ from, to }: { from: number, to: number }) {
 
 const Stats = () => {
   const stats = [
-    { number: '100', text: 'Niños que recibieron ayuda' },
-    { number: '418', text: 'Diagnósticos de niños con cáncer por año en Bolivia' },
-    { number: '50', text: 'Voluntarios' },
+    { number: '250', text: 'Niños que recibieron ayuda' },
+    { number: '430', text: 'Diagnósticos de niños con cáncer por año en Bolivia' },
+    { number: '20', text: 'Voluntarias' },
   ];
 
   return (

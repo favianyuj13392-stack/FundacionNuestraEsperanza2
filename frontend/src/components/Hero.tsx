@@ -2,6 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion, Variants } from 'framer-motion';
+import Link from 'next/dist/client/link';
 interface HeroProps {
   onOpenDonationModal: () => void;
 }
@@ -60,9 +61,11 @@ const Hero: React.FC<HeroProps> = ({ onOpenDonationModal }) => {
           Apoyamos a niños con cáncer y sus familias de toda Bolivia en La Paz
         </motion.p>
         <motion.div variants={itemVariants} className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-          <a href="#" className="bg-turquesa-secundario px-6 py-4 md:px-5 md:py-5 rounded-full font-bold hover:bg-blue-200 text-azul-marino transition duration-300 font-button w-full sm:w-auto">
-            CONOCER MÁS
-          </a>
+          <div className="text-center ">
+            <Link href="/como-ayudar" className="inline-block bg-turquesa-secundario text-white px-6 py-4 md:px-5 md:py-5 rounded-full font-bold hover:bg-azul-marino transition duration-300 font-button">
+                CONOCER MÁS
+            </Link>
+          </div>
           <button 
             onClick={onOpenDonationModal} 
             className="bg-rosa-principal px-6 py-4 md:px-5 md:py-5 rounded-full font-bold hover:bg-amarillo-detalle transition duration-300 font-button w-full sm:w-auto"
