@@ -14,11 +14,11 @@ const Suscribe = () => {
     setStatus('loading');
 
     try {
-      console.log("Intentando suscribir a:", `${API_URL}/api/subscribers`); // Log para depurar
+      console.log("Intentando suscribir a:", `${API_URL}/api/subscribe`); // Log para depurar
 
       // 2. PETICIÓN FETCH CORREGIDA
       // Nota: Verificamos si usamos /subscribe o /subscribers según tu ruta de Laravel
-      const response = await fetch(`${API_URL}/api/subscribers`, {
+      const response = await fetch(`${API_URL}/api/subscribe`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
