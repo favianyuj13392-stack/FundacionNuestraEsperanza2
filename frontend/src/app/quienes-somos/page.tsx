@@ -15,6 +15,7 @@ import Suscribe from '@/components/Suscribe';
 import AboutUs from '@/components/AboutUs';
 import DonationModal from '@/components/DonationModal'; 
 import MissionVision from '@/components/MissionVision';
+import OurPrograms from '@/components/OurPrograms';
 
 const directorio = [
   { name: 'Mónica Mendez Saucedo', role: 'Presidente', image: '/IMG/equipo/directorio/MONICA-PRESIDENTE.jpeg' },
@@ -52,6 +53,7 @@ export default function AboutPage() {
         
       <AboutUs />
       <MissionVision />
+      <OurPrograms />
       {/* Directorio */}
       <section className="bg-beige-claro py-16">
         <div className="container mx-auto px-6 text-center">
