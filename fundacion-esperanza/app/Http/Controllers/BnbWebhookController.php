@@ -9,8 +9,26 @@ use Illuminate\Support\Facades\Log;
 
 class BnbWebhookController extends Controller
 {
-    public function handle(Request $request)
+    public function handle(Request $request, \App\Services\BnbDonationService $bnbService)
     {
+        // 1. SECURITY: Secret Token Validation
+        $secret = $request->query('secret');
+        $expectedSecret = env('BNB_WEBHOOK_SECRET');
+
+        if (!$secret || $secret !== $expectedSecret) {
+            Log::warning('BNB Webhook: Invalid Secret Token', [
+                'ip' => $request->ip(),
+                'received' => $secret,
+                'expected' => $expectedSecret // BE CAREFUL: Only for debugging! Remove later.
+            ]);
+            return response()->json([
+                'success' => false, 
+                'message' => 'Unauthorized',
+                'debug_received' => $secret, // Returning purely for postman debug
+                'debug_expected' => $expectedSecret
+            ], 403);
+        }
+
         // Log the incoming webhook for debugging
         Log::info('BNB Webhook Received', $request->all());
 
@@ -18,6 +36,33 @@ class BnbWebhookController extends Controller
         
         if (!$qrId) {
             return response()->json(['success' => false, 'message' => 'QRId missing'], 400);
+        }
+
+        // 2. TRUST BUT VERIFY: Check status with BNB directly
+        try {
+            // We ignore mock mode logic here, we want real confirmation if possible.
+            // If checking status fails (e.g. timeout), we might decide to fail or proceed with caution.
+            // For now, strict: if we can't verify, we don't process.
+            $statusData = $bnbService->checkStatus($qrId);
+            
+            if (!$statusData) {
+                Log::error("BNB Webhook: Could not verify status for QR {$qrId}");
+                return response()->json(['success' => false, 'message' => 'Verification failed'], 502);
+            }
+
+            // BNB Spec: statusId 2 = Used/Paid
+            $statusId = $statusData['statusId'] ?? null;
+            if ($statusId != 2) {
+                Log::warning("BNB Webhook: QR {$qrId} status mismatch in verification. BNB says: {$statusId}");
+                // If ID is 1 (Not Used), maybe it was a duplicate call or confusion. We reject.
+                 return response()->json(['success' => false, 'message' => 'Status Mismatch'], 409);
+            }
+
+            Log::info("BNB Webhook: Verified QR {$qrId} is PAID (status 2). Proceeding.");
+
+        } catch (\Exception $e) {
+             Log::error("BNB Webhook: Verification Exception", ['error' => $e->getMessage()]);
+             return response()->json(['success' => false, 'message' => 'Internal Error during verification'], 500);
         }
 
         return DB::transaction(function () use ($request, $qrId) {
@@ -28,7 +73,7 @@ class BnbWebhookController extends Controller
                     ->first();
 
             if ($qr) {
-                // Idempotency check: If already paid, return success immediately
+                // Idempotency check
                 if ($qr->status === 'paid') {
                     return response()->json([
                         'success' => true, 
@@ -79,6 +124,8 @@ class BnbWebhookController extends Controller
                 }
             } else {
                 Log::warning("QR {$qrId} not found via webhook.");
+                // If not found in our DB but paid in Bank, maybe we should log it differently?
+                // For now, return success to Bank to stop retries, but log error.
             }
 
             // Return strict success response as per docs

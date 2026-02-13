@@ -34,6 +34,8 @@ class PublicDonationController extends Controller
      */
     public function requestQr(Request $request)
     {
+        Log::info('requestQr: Started');
+        
         $request->validate([
             'tier_id' => 'nullable|exists:donation_tiers,id',
             'custom_amount' => 'nullable|numeric|min:1',
@@ -43,6 +45,8 @@ class PublicDonationController extends Controller
             'donor_phone' => 'nullable|string|max:30',
         ]);
 
+        Log::notice('requestQr: Validation passed');
+        
         $amount = 0;
         $glossBase = "Donacion Web";
         $customerGloss = "";
@@ -57,6 +61,8 @@ class PublicDonationController extends Controller
         } else {
             return response()->json(['message' => 'Amount or Tier required'], 400);
         }
+
+        Log::notice('requestQr: Amount set', ['amount' => $amount]);
 
         // Logic for Donor Identity
         $donorName = "Anónimo";
@@ -100,13 +106,20 @@ class PublicDonationController extends Controller
             // Generate an internal reference ID for tracking
             $internalId = uniqid('don_', true);
 
+            Log::notice('requestQr: About to call generateFixedQR', ['amount' => $amount]);
+            
             // Generate QR
             // We pass $customerGloss to be included in the BNB Gloss if possible
             $response = $this->bnbService->generateFixedQR($amount, $glossBase, $internalId);
 
+            Log::notice('requestQr: generateFixedQR returned', ['response_keys' => $response ? array_keys((array)$response) : 'null']);
+
             if (!$response || !isset($response['success'])) {
+                Log::notice('requestQr: Response validation failed');
                 return response()->json(['message' => 'Error communicating with Payment Gateway'], 503);
             }
+
+            Log::notice('requestQr: Response passed validation, about to create QR record');
 
             // Save QR record with enhanced fields
             $qr = Qr::create([
@@ -114,20 +127,24 @@ class PublicDonationController extends Controller
                 'status' => 'generated',
                 'bnb_blob' => json_encode($response),
                 'expiration_date' => $response['expirationDate'] ?? now()->addDays(1),
-                'url' => $response['qr'] ?? null,
-                'code' => $response['qrId'] ?? null,
-                'external_qr_id' => $response['qrId'] ?? null,
+                'url' => $response['qr_image'] ?? $response['qr'] ?? null,  // BNB uses 'qr' or our alias 'qr_image'
+                'code' => $response['qrId'] ?? $response['id'] ?? null,  // BNB returns 'id', we map to 'qrId'
+                'external_qr_id' => $response['qrId'] ?? $response['id'] ?? null,
                 'gloss' => $response['gloss'] ?? $glossBase,
                 'donor_name' => $donorName, 
-                'donor_id' => $donorId, // <--- SAVED LINK
+                'donor_id' => $donorId,
             ]);
             
+            Log::notice('requestQr: QR record created', ['qr_id' => $qr->id]);
+
             // If identified, we might want to link this QR to a user/donor?
             // The Qr model currently doesn't have donor_id, but the Donation model does.
             // When the payment is webhooked, we usually create the Donation then.
             // But we need to know who it was. 
             // We are saving donor_name in QR, so we can use that to create the Donation later.
 
+            Log::notice('requestQr: About to return success response');
+            
             return response()->json([
                 'qr_image' => $response['qr'] ?? null,
                 'qr_id' => $response['qrId'] ?? null,
@@ -136,7 +153,7 @@ class PublicDonationController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Public QR Request Error', ['error' => $e->getMessage()]);
+            Log::error('Public QR Request Error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json(['message' => 'Internal Server Error'], 500);
         }
     }

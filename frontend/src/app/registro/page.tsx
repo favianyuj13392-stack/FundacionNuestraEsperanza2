@@ -1,19 +1,19 @@
 "use client";
-import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation'; 
-import Link from 'next/link';
-import Image from 'next/image';
+import React, { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 export default function RegisterPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirmation, setPasswordConfirmation] = useState('');
-  
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { login } = useAuth(); 
+
+  const { login } = useAuth();
   const router = useRouter(); // Para redirigir
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,7 +22,7 @@ export default function RegisterPage() {
     setError(null);
 
     if (password !== passwordConfirmation) {
-      setError('Las contraseñas no coinciden.');
+      setError("Las contraseñas no coinciden.");
       setIsLoading(false);
       return;
     }
@@ -30,27 +30,27 @@ export default function RegisterPage() {
     // Define la URL de tu API de Laravel
     // Asegúrate de que esta sea la URL correcta en producción
     // Por defecto en desarrollo usar localhost para evitar errores DNS
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
     try {
       // Solicitar cookie CSRF antes de operaciones que usan sesión
       await fetch(`${API_URL}/sanctum/csrf-cookie`, {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
       });
 
-      const response = await fetch(`${API_URL}/api/register`, {
-        method: 'POST',
-        credentials: 'include',
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           name,
           email,
           password,
-          password_confirmation: passwordConfirmation, 
+          password_confirmation: passwordConfirmation,
         }),
       });
 
@@ -62,7 +62,7 @@ export default function RegisterPage() {
           const firstError = Object.values(data.errors)[0] as string[];
           setError(firstError[0]);
         } else {
-          setError(data.message || 'Ocurrió un error en el registro.');
+          setError(data.message || "Ocurrió un error en el registro.");
         }
         setIsLoading(false);
         return;
@@ -73,14 +73,13 @@ export default function RegisterPage() {
       // Esto debe coincidir con lo que te devuelve Laravel
       if (data.user && data.token) {
         login(data.user, data.token); // Usamos la función del AuthContext
-        router.push('/perfil'); // Redirigimos al perfil del usuario
+        router.push("/perfil"); // Redirigimos al perfil del usuario
       } else {
-         setError('Respuesta inesperada del servidor.');
+        setError("Respuesta inesperada del servidor.");
       }
-
     } catch (err) {
-      console.error('Error de red o fetch:', err);
-      setError('No se pudo conectar al servidor. Inténtalo más tarde.');
+      console.error("Error de red o fetch:", err);
+      setError("No se pudo conectar al servidor. Inténtalo más tarde.");
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +92,7 @@ export default function RegisterPage() {
         <div className="flex justify-center mb-4">
           <Link href="/">
             <Image
-              src="/IMG/Logo.jpg" 
+              src="/IMG/Logo.jpg"
               alt="Volver al Inicio - Fundación Nuestra Esperanza"
               width={180}
               height={54}
@@ -104,11 +103,11 @@ export default function RegisterPage() {
         <h2 className="text-3xl font-bold text-center text-azul-marino font-title">
           Crear una Cuenta
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label 
-              htmlFor="name" 
+            <label
+              htmlFor="name"
               className="text-sm font-bold text-gray-700 font-sans"
             >
               Nombre Completo
@@ -124,8 +123,8 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label 
-              htmlFor="email" 
+            <label
+              htmlFor="email"
               className="text-sm font-bold text-gray-700 font-sans"
             >
               Correo Electrónico
@@ -141,8 +140,8 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label 
-              htmlFor="password" 
+            <label
+              htmlFor="password"
               className="text-sm font-bold text-gray-700 font-sans"
             >
               Contraseña
@@ -158,8 +157,8 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label 
-              htmlFor="passwordConfirmation" 
+            <label
+              htmlFor="passwordConfirmation"
               className="text-sm font-bold text-gray-700 font-sans"
             >
               Confirmar Contraseña
@@ -174,9 +173,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-center text-red-600">{error}</p>
-          )}
+          {error && <p className="text-sm text-center text-red-600">{error}</p>}
 
           <div>
             <button
@@ -184,14 +181,17 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="w-full px-4 py-3 font-bold text-white transition-colors duration-300 rounded-md bg-rosa-principal hover:bg-amarillo-detalle font-button disabled:bg-gray-400"
             >
-              {isLoading ? 'Creando cuenta...' : 'Registrarse'}
+              {isLoading ? "Creando cuenta..." : "Registrarse"}
             </button>
           </div>
         </form>
 
         <p className="text-sm text-center text-gray-600 font-sans">
-          ¿Ya tienes una cuenta?{' '}
-          <Link href="/login" className="font-bold text-turquesa-secundario hover:underline">
+          ¿Ya tienes una cuenta?{" "}
+          <Link
+            href="/login"
+            className="font-bold text-turquesa-secundario hover:underline"
+          >
             Inicia Sesión
           </Link>
         </p>

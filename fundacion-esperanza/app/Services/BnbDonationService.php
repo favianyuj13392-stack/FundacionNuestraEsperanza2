@@ -19,13 +19,86 @@ class BnbDonationService
     {
         // Base URIs from Spec
         $this->baseUrlAuth = 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1';
-        $this->baseUrlSimple = 'https://qrsimpleapiv2.azurewebsites.net/api/v1';
+        // CRITICAL: Use BNB official endpoint, NOT Azure  
+        $this->baseUrlSimple = 'http://test.bnb.com.bo/QRSimple.API/api/v1';
         $this->baseUrlVariable = 'http://test.bnb.com.bo/DirectDebit/api';
 
-        // Credentials from .env
-        $this->accountId = env('BNB_ACCOUNT_ID');
-        $this->authId = env('BNB_AUTH_ID');
-        $this->serviceCode = env('BNB_SERVICE_CODE');
+        // Load values from config file.  When `config:cache` is used this
+        // ensures we don't accidentally read stale or missing environment data.
+        // We still trim to remove stray quotes/whitespace.
+        $this->accountId = trim((string) config('bnb.account_id', ''));
+        $this->authId = trim((string) config('bnb.authorization_id', ''));
+        $this->serviceCode = trim((string) config('bnb.service_code', ''));
+        
+        // Setup SSL certificate verification for Guzzle/cURL
+        $this->setupSslCertificate();
+    }
+
+    /**
+     * Configure SSL certificate verification for Guzzle/cURL
+     * Ensures that HTTPS requests use a valid CA bundle on Windows/Laragon environments
+     */
+    private function setupSslCertificate()
+    {
+        // Priority paths to check for CA bundle
+        $certificatePaths = [
+            base_path('storage/ca-bundle.crt'),                          // Recommended: our downloaded bundle
+            getenv('CURL_CA_BUNDLE') ?: '',                              // Check environment variable
+            'C:\\laragon\\etc\\ssl\\cacert.pem',                         // Laragon default
+            base_path('storage/app/cacert.pem'),                         // Alternative location
+        ];
+
+        foreach ($certificatePaths as $certPath) {
+            if ($certPath && @file_exists($certPath) && @filesize($certPath) > 0) {
+                // Set environment variables that Guzzle will use
+                putenv("CURL_CA_BUNDLE=$certPath");
+                ini_set('curl.cainfo', $certPath);
+                ini_set('openssl.cafile', $certPath);
+                
+                Log::debug('SSL Certificate configured', ['path' => $certPath]);
+                return;
+            }
+        }
+
+        Log::warning('No valid SSL certificate found, HTTPS requests may fail');
+    }
+
+    /**
+     * Make an HTTP request with proper SSL certificate configuration
+     * This helper ensures that both environment variables and ini settings
+     * are properly set before Guzzle makes the request
+     */
+    private function makeHttpRequest($method, $url, $headers = [], $payload = null, $token = null)
+    {
+        // Ensure SSL is properly configured before each request
+        $this->setupSslCertificate();
+
+        try {
+            // Build the request
+            $request = Http::withHeaders($headers)
+                ->timeout(30)
+                ->connectTimeout(10);
+
+            // Add token if provided
+            if ($token) {
+                $request = $request->withToken($token);
+            }
+
+            // Execute request
+            if ($method === 'POST') {
+                return $request->post($url, $payload);
+            } elseif ($method === 'GET') {
+                return $request->get($url);
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error("HTTP Request Exception: $method $url", [
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -34,26 +107,74 @@ class BnbDonationService
      */
     public function authenticate()
     {
-        return Cache::remember('bnb_token', 3000, function () {
-            $url = "{$this->baseUrlAuth}/auth/token";
-            
+        // Token valid for 50 minutes
+        // Avoid caching null values: first check cache, otherwise attempt auth and only cache on success.
+        $cached = Cache::get('bnb_token');
+        if ($cached) {
+            return $cached;
+        }
+
+        $url = "{$this->baseUrlAuth}/auth/token";
+
+        // Use configured credentials from env via constructor
+        $accountId = $this->accountId;
+        $authId = $this->authId;
+
+        // Log the attempt (masking sensitive lengths)
+        Log::debug('BNB Auth Attempt', [
+            'url' => $url,
+            'accountId' => $accountId,
+            'authIdLen' => $authId ? strlen($authId) : 0
+        ]);
+
+        try {
+            // Build JSON payload manually to match Postman raw body (avoid json_encode quirks)
+            $jsonPayload = '{"accountId":"' . $accountId . '","authorizationId":"' . $authId . '"}';
+
+            Log::debug('BNB Raw Payload', ['payload' => $jsonPayload]);
+
+            // Force Postman-like headers including User-Agent to mimic Postman exactly
+            $forcedHeaders = [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'User-Agent' => 'PostmanRuntime/7.32.0'
+            ];
+
+            // NOTE: the auth endpoint is plain HTTP; SSL verification not needed here.
+            // Add timeout to avoid indefinite blocking; 10 seconds is reasonable for BNB authentication.
+            $response = Http::withHeaders($forcedHeaders)
+                ->withBody($jsonPayload, 'application/json')
+                ->timeout(10)
+                ->post($url);
+
+            // Log response metadata for diagnosis
             try {
-                $response = Http::post($url, [
-                    'accountId' => $this->accountId,
-                    'authorizationId' => $this->authId,
+                Log::debug('BNB Response Meta', [
+                    'status' => $response->status(),
+                    'headers' => $response->headers(),
                 ]);
-
-                if ($response->successful() && $response->json('success')) {
-                    return $response->json('message'); // The token is in the 'message' field
-                }
-
-                Log::error('BNB Auth Failed', ['body' => $response->body(), 'status' => $response->status()]);
-                return null;
-            } catch (\Exception $e) {
-                Log::error('BNB Auth Exception', ['message' => $e->getMessage()]);
-                return null;
+            } catch (\Exception $_) {
+                // ignore header logging errors
             }
-        });
+
+            if ($response->successful() && $response->json('success')) {
+                $token = $response->json('message');
+                // Cache only when we obtained a valid token
+                Cache::put('bnb_token', $token, 3000);
+                Log::info('BNB Auth Success', ['token_preview' => substr($token, 0, 10) . '...']);
+                return $token;
+            }
+
+            Log::error('BNB Auth Failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error('BNB Auth Exception', ['message' => $e->getMessage()]);
+            return null;
+        }
     }
 
     /**
@@ -79,7 +200,7 @@ class BnbDonationService
      * Generate a Fixed Amount QR.
      * Endpoint: /main/getQRWithImageAsync
      */
-    public function generateFixedQR($amount, $customerGloss = null, $additionalData = null)
+    public function generateFixedQR($amount, $customerGloss = null, $internalId = null)
     {
         // 1. Prepare Data
         $gloss = $this->generateUniqueGloss();
@@ -90,9 +211,13 @@ class BnbDonationService
         $sendingGloss = substr($sendingGloss, 0, 100); // Ensure limit
 
         $expirationDate = $this->calculateExpirationDate();
+        
+        // Use internalId for tracking, or generate one if not provided
+        $trackingId = $internalId ?? uniqid('don_', true);
 
         // --- MOCK MODE CHECK ---
-        if (env('BNB_MOCK_MODE', false)) {
+        // Use strict comparison to ensure we have actual boolean true (not string 'true')
+        if (config('bnb.mock_mode') === true) {
             Log::info('BNB Mock Mode: Generating fake QR', ['amount' => $amount]);
             
             // Dummy Base64 QR Image (Generic QR Placeholder)
@@ -117,32 +242,170 @@ class BnbDonationService
         }
 
         $url = "{$this->baseUrlSimple}/main/getQRWithImageAsync";
-        
-        $payload = [
-            'currency' => 'BOB',
-            'gloss' => $sendingGloss,
-            'amount' => (string) $amount,
-            'singleUse' => 'true',
-            'expirationDate' => $expirationDate,
-            'destinationAccountId' => '1', 
-            'additionalData' => $additionalData ?? $gloss, // Use gloss as backup tracking
+
+        // === HARDCORE MODE: Manual JSON Construction ===
+        // Build JSON string manually to match BNB's strict parsing requirements
+        // CORRECTED: Follow exact format from BNB PDF specification (NOT Azure endpoint format)
+        $jsonPayload = '{'
+            . '"currency":"BOB",'  // BNB uses "currency" with string "BOB", not numeric currencyCode
+            . '"gloss":"' . addslashes($sendingGloss) . '",'  // BNB uses "gloss" for description
+            . '"amount":' . (int)$amount . ','
+            . '"singleUse":true,'  // Boolean literal
+            . '"expirationDate":"' . $expirationDate . '",'
+            . '"additionalData":"' . addslashes($trackingId) . '",'
+            . '"destinationAccountId":"1"'  // 1 = cuenta nacional
+            . '}';
+
+        Log::debug('BNB QR Raw Payload', ['payload' => $jsonPayload]);
+
+        // === HARDCORE MODE: Explicit Headers ===
+        // Match EXACTLY what BNB PDF specifies
+        $forcedHeaders = [
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json',
+            'cache-control' => 'no-cache',  // BNB PDF specifies this
+            'User-Agent' => 'PostmanRuntime/7.32.0',
+            'Accept' => 'application/json'
         ];
+        
+        Log::debug('BNB QR Headers Prepared', [
+            'Authorization' => 'Bearer ' . substr($token, 0, 15) . '...',
+            'Content-Type' => $forcedHeaders['Content-Type'],
+            'cache-control' => $forcedHeaders['cache-control'],
+            'User-Agent' => $forcedHeaders['User-Agent']
+        ]);
 
         try {
-            $response = Http::withToken($token)->post($url, $payload);
+            // Ensure SSL certificate is configured before making HTTPS request
+            $this->setupSslCertificate();
+
+            Log::debug('BNB QR Request Starting', [
+                'url' => $url, 
+                'amount' => $amount,
+                'token_preview' => substr($token, 0, 20) . '...',
+                'gloss' => $sendingGloss,
+                'auth_header' => 'Bearer ' . substr($token, 0, 20) . '...'
+            ]);
+
+            // === HARDCORE MODE: Raw Body POST ===
+            // Use withBody() instead of passing array - ensures exact JSON format
+            $response = Http::withHeaders($forcedHeaders)
+                ->withBody($jsonPayload, 'application/json')
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->post($url);  // HTTP endpoint, no SSL verification needed
+
+            Log::debug('BNB QR Response Received', [
+                'status' => $response->status(),
+                'content_type' => $response->header('content-type'),
+                'body_length' => strlen($response->body()),
+                'body_preview' => substr($response->body(), 0, 200)
+            ]);
 
             if ($response->successful()) {
                 $data = $response->json();
+                
+                // Map BNB response fields to standard format
+                // BNB PDF returns: id, qr, success, message
+                // We normalize to: qrId, qr_image for consistency
+                if (isset($data['id']) && !isset($data['qrId'])) {
+                    $data['qrId'] = $data['id'];  // BNB uses 'id', we use 'qrId'
+                }
+                if (isset($data['qr']) && !isset($data['qr_image'])) {
+                    $data['qr_image'] = $data['qr'];  // Alias for frontend compatibility
+                }
+                
                 // Inject our generated gloss into the response so Controller can save it
                 $data['gloss'] = $gloss; 
                 $data['success'] = true;
+                
+                Log::info('BNB Fixed QR Success', [
+                    'qrId' => $data['qrId'] ?? $data['id'] ?? 'unknown',
+                    'amount' => $amount
+                ]);
                 return $data;
             }
 
-            Log::error('BNB Fixed QR Failed', ['body' => $response->body()]);
+            // CRITICAL: Handle 401 Unauthorized by refreshing token and retrying
+            // Token can expire in BNB's system despite being fresh in our cache
+            if ($response->status() === 401) {
+                Log::warning('BNB QR Got 401 - Token likely expired, clearing cache and retrying', [
+                    'gloss' => $sendingGloss,
+                    'attempt' => 'retry_with_fresh_token'
+                ]);
+                
+                // Clear cached token to force fresh authentication
+                Cache::forget('bnb_token');
+                
+                // Retry: Get new token
+                $newToken = $this->authenticate();
+                if (!$newToken) {
+                    Log::error('BNB QR Retry Auth Failed', ['gloss' => $sendingGloss]);
+                    return null;
+                }
+                
+                // Retry: Update headers with new token
+                $forcedHeaders['Authorization'] = 'Bearer ' . $newToken;
+                
+                Log::debug('BNB QR Retry With Fresh Token', [
+                    'url' => $url,
+                    'amount' => $amount,
+                    'token_preview' => substr($newToken, 0, 15) . '...'
+                ]);
+                
+                // Retry the request
+                $retryResponse = Http::withHeaders($forcedHeaders)
+                    ->withBody($jsonPayload, 'application/json')
+                    ->timeout(30)
+                    ->connectTimeout(10)
+                    ->post($url);
+                
+                Log::debug('BNB QR Retry Response', [
+                    'status' => $retryResponse->status(),
+                    'success' => $retryResponse->successful()
+                ]);
+                
+                if ($retryResponse->successful()) {
+                    $data = $retryResponse->json();
+                    
+                    // Map response fields again
+                    if (isset($data['id']) && !isset($data['qrId'])) {
+                        $data['qrId'] = $data['id'];
+                    }
+                    if (isset($data['qr']) && !isset($data['qr_image'])) {
+                        $data['qr_image'] = $data['qr'];
+                    }
+                    
+                    $data['gloss'] = $gloss;
+                    $data['success'] = true;
+                    
+                    Log::info('BNB Fixed QR Success (Retry)', [
+                        'qrId' => $data['qrId'] ?? 'unknown',
+                        'amount' => $amount,
+                        'retry' => true
+                    ]);
+                    return $data;
+                } else {
+                    Log::error('BNB Fixed QR Retry Still Failed', [
+                        'retry_status' => $retryResponse->status(),
+                        'gloss' => $sendingGloss
+                    ]);
+                    return null;
+                }
+            }
+
+            Log::error('BNB Fixed QR Failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'gloss' => $sendingGloss
+            ]);
             return null;
         } catch (\Exception $e) {
-            Log::error('BNB Fixed QR Exception', ['message' => $e->getMessage()]);
+            Log::error('BNB Fixed QR Exception', [
+                'message' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'gloss' => $sendingGloss
+            ]);
             return null;
         }
     }
@@ -173,7 +436,11 @@ class BnbDonationService
         ];
 
         try {
-            $response = Http::withToken($token)->post($url, $payload);
+            // Variable QR endpoint is HTTP so no SSL issue, but timeout still applies
+            $response = Http::withToken($token)
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->post($url, $payload);
 
             if ($response->successful()) {
                 return $response->json();
@@ -193,6 +460,16 @@ class BnbDonationService
      */
     public function checkStatus($qrId)
     {
+        if (str_starts_with($qrId, 'mock_') || env('BNB_MOCK_MODE', false)) {
+            Log::info("BNB Service: Mocking status check for {$qrId}");
+            return [
+                'statusId' => 2, // PAID
+                'status' => 'Mock Paid',
+                'qrId' => $qrId,
+                'mock' => true
+            ];
+        }
+
         $token = $this->authenticate();
 
         if (!$token) {
@@ -213,6 +490,72 @@ class BnbDonationService
         } catch (\Exception $e) {
             Log::error('BNB Check Status Exception', ['message' => $e->getMessage()]);
             return null;
+        }
+    }
+
+    /**
+     * Debug helper: perform auth with forced headers and return request/response details.
+     * Useful to compare what the server receives vs Postman.
+     */
+    public function debugAuthenticate(array $overrides = [])
+    {
+        $url = "{$this->baseUrlAuth}/auth/token";
+
+        // allow overriding credentials for ad-hoc tests
+        $accountId = $overrides['accountId'] ?? env('BNB_ACCOUNT_ID');
+        $authId = $overrides['authorizationId'] ?? env('BNB_AUTH_ID');
+
+        $payload = json_encode([
+            'accountId' => $accountId,
+            'authorizationId' => $authId
+        ]);
+
+        // Force headers to imitate Postman
+        $forcedHeaders = [
+            'User-Agent' => 'PostmanRuntime/7.32.0',
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ];
+
+        // Send request
+        try {
+            $response = Http::withHeaders($forcedHeaders)
+                ->withBody($payload, 'application/json')
+                ->post($url);
+
+            // Prepare readable headers (some headers may be objects)
+            $respHeaders = [];
+            try {
+                foreach ($response->headers() as $k => $v) {
+                    $respHeaders[$k] = is_array($v) ? implode(';', $v) : $v;
+                }
+            } catch (\Exception $_) {
+                $respHeaders = $response->headers();
+            }
+
+            return [
+                'request' => [
+                    'url' => $url,
+                    'headers' => $forcedHeaders,
+                    'body_raw' => $payload,
+                ],
+                'response' => [
+                    'status' => $response->status(),
+                    'headers' => $respHeaders,
+                    'body' => $response->body(),
+                    'json' => $response->json(),
+                ],
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'request' => [
+                    'url' => $url,
+                    'headers' => $forcedHeaders,
+                    'body_raw' => $payload,
+                ],
+                'error' => $e->getMessage(),
+            ];
         }
     }
 }

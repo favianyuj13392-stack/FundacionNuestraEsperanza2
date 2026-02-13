@@ -4,6 +4,34 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+// Fix for cURL SSL certificate verification on Windows/Laragon environments
+// This ensures that HTTP client requests have a valid CA bundle configured
+// even if Laragon's PHP installation doesn't have it properly set up.
+// This is critical for making HTTPS requests to external APIs (like BNB QR service).
+if (!getenv('CURL_CA_BUNDLE') && !ini_get('curl.cainfo')) {
+    // Priority order for CA certificate detection
+    $possibleCaCerts = [
+        dirname(__DIR__) . '/storage/ca-bundle.crt',      // Downloaded Mozilla CA bundle (RECOMMENDED)
+        'C:\\laragon\\etc\\ssl\\cacert.pem',               // Laragon default location
+        dirname(__DIR__) . '/storage/app/cacert.pem',      // Alternative storage location
+        ini_get('openssl.cafile') ?: '',                   // OpenSSL's configured CA file
+        getenv('PATH_TO_CACERT') ?: '',                    // Custom env variable
+    ];
+    
+    foreach ($possibleCaCerts as $cert) {
+        if ($cert && @file_exists($cert) && @filesize($cert) > 0) {
+            @putenv("CURL_CA_BUNDLE=$cert");
+            @ini_set('curl.cainfo', $cert);
+            
+            // Log the successful configuration (helpful for debugging)
+            if (function_exists('error_log')) {
+                @error_log("[SSL] Configured cURL CA bundle: $cert");
+            }
+            break;
+        }
+    }
+}
+
 return Application::configure(basePath: dirname(__DIR__))
     /**
      * Paso 1: Definir los archivos de rutas.
@@ -45,7 +73,8 @@ return Application::configure(basePath: dirname(__DIR__))
             '/api/webhooks/*',
             '/api/subscribe',
             '/api/contact',
-            'stripe/*',
+            'api/webhooks/bnb', 
+            'api/webhooks/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

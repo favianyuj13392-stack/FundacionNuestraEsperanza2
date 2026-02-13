@@ -154,6 +154,51 @@ Route::prefix('public')->group(function () {
     Route::get('check-status/{qrId}', [\App\Http\Controllers\PublicDonationController::class, 'checkStatus']);
 });
 
+/**
+ * Internal debug endpoints (DO NOT expose in production).
+ * /internal/debug/bnb-auth returns the exact headers, raw body and BNB response.
+ */
+Route::post('internal/debug/bnb-auth', function (\Illuminate\Http\Request $request) {
+    $service = app(\App\Services\BnbDonationService::class);
+    $overrides = [];
+    if ($request->has('accountId')) $overrides['accountId'] = $request->input('accountId');
+    if ($request->has('authorizationId')) $overrides['authorizationId'] = $request->input('authorizationId');
+
+    // capture the environment value directly
+    $envAccount = env('BNB_ACCOUNT_ID');
+    $envAuth = env('BNB_AUTH_ID');
+
+    $result = $service->debugAuthenticate($overrides);
+    return response()->json(array_merge(['env' => ['account' => $envAccount, 'auth' => $envAuth]], $result));
+});
+
+/**
+ * Test endpoint to see if QR service can authenticate and generate a QR
+ */
+Route::post('internal/debug/test-qr', function (\Illuminate\Http\Request $request) {
+    try {
+        $service = app(\App\Services\BnbDonationService::class);
+        $amount = $request->input('amount', 10);
+        
+        \Illuminate\Support\Facades\Log::info('Test QR: Starting', ['amount' => $amount]);
+        
+        $result = $service->generateFixedQR($amount);
+        
+        \Illuminate\Support\Facades\Log::info('Test QR: Generated', ['result_keys' => array_keys((array)$result)]);
+        
+        return response()->json([
+            'success' => true,
+            'result' => $result
+        ]);
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Test QR Error', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 /*
 |--------------------------------------------------------------------------
 | Webhooks
