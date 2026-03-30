@@ -10,23 +10,33 @@ class SettingsSeeder extends Seeder
     public function run(): void
     {
         $settings = [
-            // --- CONTACTO (Para Navbar y Footer) (RF-02) ---
-            ['key' => 'contact_whatsapp', 'value' => '+59170000000', 'type' => 'text', 'group' => 'Contacto'],
-            ['key' => 'contact_phone', 'value' => '(591) 2 2222222', 'type' => 'text', 'group' => 'Contacto'],
-            ['key' => 'contact_email', 'value' => 'info@nuestraesperanza.org', 'type' => 'text', 'group' => 'Contacto'],
-            ['key' => 'contact_address', 'value' => 'Av. Arce #2525, La Paz, Bolivia', 'type' => 'text', 'group' => 'Contacto'],
+            // --- REDES SOCIALES (Para los íconos del Footer) ---
+            ['key' => 'social_facebook', 'value' => 'https://www.facebook.com/NuestraEsperanzaBo/?locale=es_LA', 'type' => 'text', 'group' => 'Redes Sociales'],
+            ['key' => 'social_instagram', 'value' => 'https://www.instagram.com/accounts/login/?next=%2Ffundacionnuestraesperanza&source=omni_redirect', 'type' => 'text', 'group' => 'Redes Sociales'],
+            ['key' => 'social_tiktok', 'value' => 'https://www.tiktok.com/@fund.nuestra.esperanza', 'type' => 'text', 'group' => 'Redes Sociales'],
 
-            // --- ESTADÍSTICAS (Para el componente Stats.tsx) (RF-01) ---
+            // --- ESTADÍSTICAS (Para el componente Stats.tsx) ---
             ['key' => 'stats_ninos_ayudados', 'value' => '250', 'type' => 'number', 'group' => 'Estadísticas'],
             ['key' => 'stats_diagnosticos_anuales', 'value' => '430', 'type' => 'number', 'group' => 'Estadísticas'],
             ['key' => 'stats_voluntarias', 'value' => '20', 'type' => 'number', 'group' => 'Estadísticas'],
 
-            // --- TEXTOS INSTITUCIONALES (Para Footer y Banners) (RF-01) ---
-            ['key' => 'footer_about_text', 'value' => 'Brindamos un hogar cálido, alimentación y apoyo psicosocial a niños con cáncer y sus familias para evitar el abandono del tratamiento.', 'type' => 'longtext', 'group' => 'Textos Institucionales'],
+            // --- TEXTOS INSTITUCIONALES (Para la descripción corta del Footer) ---
+            ['key' => 'footer_about_text', 'value' => 'Haciendo una diferencia en la vida de los niños que padecen de cáncer en toda Bolivia.', 'type' => 'longtext', 'group' => 'Textos Institucionales'],
+            
+            // --- CONTACTO (Solo si tienes un botón de WhatsApp general en el Navbar/Footer) ---
+            ['key' => 'contact_whatsapp', 'value' => '+59170112236', 'type' => 'text', 'group' => 'Contacto'],
         ];
 
         foreach ($settings as $setting) {
-            Setting::firstOrCreate(['key' => $setting['key']], $setting);
+            // Usamos updateOrCreate para asegurarnos de que se actualicen si ya existían
+            Setting::updateOrCreate(
+                ['key' => $setting['key']], 
+                [
+                    'value' => $setting['value'],
+                    'type' => $setting['type'],
+                    'group' => $setting['group']
+                ]
+            );
         }
     }
 }
