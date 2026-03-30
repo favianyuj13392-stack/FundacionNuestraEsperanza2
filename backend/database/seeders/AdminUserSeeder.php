@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Persona;
-use App\Models\Rol;
+use App\Models\User; 
+use App\Models\Role; 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -11,19 +11,21 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = Persona::firstOrCreate(
-            ['correo_electronico' => 'admin@fundacion.org'],
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@fundacion.org'],
             [
-                'nombre' => 'Super',
-                'apellido_paterno' => 'Admin',
-                'contrasenia' => Hash::make('CambiaEsto123!'),
-                'activo' => 1,
+                'name' => 'Super',
+                'last_name' => 'Admin',
+                'password' => Hash::make('CambiaEsto123!'),
+                'is_active' => 1,
             ]
         );
 
-        $rolAdminId = Rol::where('nombre','admin')->value('id_rol');
-        if ($rolAdminId) {
-            $admin->roles()->syncWithoutDetaching([$rolAdminId]);
+        // Buscamos el rol y lo asignamos
+        $rolAdmin = Role::where('name', 'admin')->first();
+        if ($rolAdmin) {
+            // Asumiendo que la relación en tu modelo User se llama roles()
+            $admin->roles()->syncWithoutDetaching([$rolAdmin->id]);
         }
     }
 }
