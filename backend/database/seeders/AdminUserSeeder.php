@@ -16,7 +16,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Super',
                 'last_name' => 'Admin',
-                'password' => Hash::make('CambiaEsto123!'),
+                'password' => Hash::make('conAdmin123'),
                 'is_active' => 1,
             ]
         );
