@@ -53,11 +53,11 @@ class SettingResource extends Resource
                     ->searchable(),
             ])
             
-            ->defaultGroup(
+            /*->defaultGroup(
                 Tables\Grouping\Group::make('group')
                     ->label('Sección')
                     ->collapsible()
-            )
+            )*/
             ->filters([
                 //
             ])

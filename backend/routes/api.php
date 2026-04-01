@@ -12,6 +12,7 @@ use App\Models\News;
 use App\Models\Testimonial;
 use App\Models\ContactMessage;
 use App\Models\Subscriber;
+use Api\Models\Setting;
 
 /*
 |--------------------------------------------------------------------------
@@ -141,7 +142,11 @@ Route::post('/subscribe', function (Request $request) {
 
     return response()->json(['message' => 'Suscripción exitosa'], 201);
 });
-
+// 6. ENDPOINT PARA SETTINGS (HEADER, FOOTER Y STATS)
+Route::get('/settings', function () {
+    // pluck() transforma la base de datos en un objeto simple: {"social_facebook": "url", ...}
+    return response()->json(Setting::pluck('value', 'key'));
+});
 
 /*
 |--------------------------------------------------------------------------

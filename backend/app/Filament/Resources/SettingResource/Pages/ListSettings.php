@@ -16,4 +16,22 @@ class ListSettings extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+    public function getTabs(): array
+    {
+        return [
+            'Todos' => Tab::make(),
+            
+            'Redes Sociales' => Tab::make()
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('group', 'Redes Sociales'))
+                ->icon('heroicon-m-share'), // Ícono opcional bonito
+                
+            'Estadísticas' => Tab::make()
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('group', 'Estadísticas'))
+                ->icon('heroicon-m-chart-bar'),
+                
+            'Textos Institucionales' => Tab::make()
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('group', 'Textos Institucionales'))
+                ->icon('heroicon-m-document-text'),
+        ];
+    }
 }
