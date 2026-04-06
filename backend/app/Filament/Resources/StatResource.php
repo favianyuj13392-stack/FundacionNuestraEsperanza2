@@ -25,7 +25,17 @@ class StatResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\TextInput::make('key')
+                    ->label('Identificador Interno (Ej: stats_donantes)')
+                    ->required()
+                    ->unique(ignoreRecord: true),
+                
+                Forms\Components\TextInput::make('value')
+                    ->label('Cantidad')
+                    ->numeric()
+                    ->required(),
+                Forms\Components\Hidden::make('group')->default('Estadísticas'),
+                Forms\Components\Hidden::make('type')->default('number'),
             ]);
     }
 

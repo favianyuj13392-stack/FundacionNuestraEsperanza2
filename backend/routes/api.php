@@ -144,8 +144,7 @@ Route::post('/subscribe', function (Request $request) {
 });
 // 6. ENDPOINT PARA SETTINGS (HEADER, FOOTER Y STATS)
 Route::get('/settings', function () {
-    // pluck() transforma la base de datos en un objeto simple: {"social_facebook": "url", ...}
-    return response()->json(Setting::pluck('value', 'key'));
+    return \App\Models\Setting::pluck('value', 'key'); 
 });
 
 /*
