@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { motion, useInView, animate } from 'framer-motion';
 
@@ -24,12 +24,29 @@ function Counter({ from, to }: { from: number, to: number }) {
 }
 
 const Stats = () => {
-  const stats = [
-    { number: '250', text: 'Niños que recibieron ayuda' },
-    { number: '430', text: 'Diagnósticos de niños con cáncer por año en Bolivia' },
-    { number: '20', text: 'Voluntarias' },
-  ];
+  const [settings, setSettings] = useState<any>(null);
 
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/settings') // Asegúrate de usar tu variable de entorno aquí
+      .then(res => res.json())
+      .then(data => setSettings(data))
+      .catch(err => console.error("Error cargando settings:", err));
+  }, []);
+
+  const stats = [
+    { 
+      number: settings?.stats_ninos_ayudados || '0', 
+      text: 'Niños que recibieron ayuda' 
+    },
+    { 
+      number: settings?.stats_diagnosticos_anuales || '0', 
+      text: 'Diagnósticos de niños con cáncer por año en Bolivia' 
+    },
+    { 
+      number: settings?.stats_voluntarias || '0', 
+      text: 'Voluntarias' 
+    },
+  ];
   return (
     <section className="relative py-20">
       <div className="absolute inset-0 z-0">
@@ -57,7 +74,7 @@ const Stats = () => {
               className="p-4"
             >
               <h3 className="text-5xl md:text-6xl font-extrabold font-title">
-                +<Counter from={0} to={parseInt(stat.number)} />
+                +<Counter from={0} to={Number(stat.number) || 0} />
               </h3>
               <p className="mt-2 text-md md:text-lg font-sans">{stat.text}</p>
             </motion.div>

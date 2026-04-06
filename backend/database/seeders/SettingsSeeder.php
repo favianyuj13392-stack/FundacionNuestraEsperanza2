@@ -25,6 +25,9 @@ class SettingsSeeder extends Seeder
             
             // --- CONTACTO (Solo si tienes un botón de WhatsApp general en el Navbar/Footer) ---
             ['key' => 'contact_whatsapp', 'value' => '+59170112236', 'type' => 'text', 'group' => 'Contacto'],
+            // LOGO
+            ['key' => 'global_logo', 'value' => null, 'type' => 'image', 'group' => 'General'],
+            ['key' => 'site_name', 'value' => 'Fundación Nuestra Esperanza', 'type' => 'text', 'group' => 'General'],
         ];
 
         foreach ($settings as $setting) {
