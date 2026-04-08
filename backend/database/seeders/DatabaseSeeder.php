@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             TestUserSeeder::class,
             SettingsSeeder::class,
+            NavLinksSeeder::class,
             DataImportSeeder::class,
         ]);
     }

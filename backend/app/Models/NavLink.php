@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class NavLink extends Model
 {
-    //
+    protected $fillable = ['title', 'url', 'location', 'order'];
 }

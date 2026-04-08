@@ -13,6 +13,7 @@ use App\Models\Testimonial;
 use App\Models\ContactMessage;
 use App\Models\Subscriber;
 use Api\Models\Setting;
+use Api\Models\NavLink;
 
 /*
 |--------------------------------------------------------------------------
@@ -148,9 +149,12 @@ Route::get('/settings', function () {
 });
 // 7. ENDPOINT PARA LINKS MENÚ
 Route::get('/nav-links', function () {
-    return NavLink::orderBy('order')->get();
+    return response()->json(NavLink::orderBy('order', 'asc')->get());
 });
-
+// 8. ENDPOINT PARA STATS
+Route::get('/stats', function () {
+    return response()->json(\App\Models\Stat::all());
+});
 /*
 |--------------------------------------------------------------------------
 | Public Donation Routes (Del Repositorio)
