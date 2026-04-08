@@ -27,13 +27,10 @@ class ListSettings extends ListRecords
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('group', 'Redes Sociales'))
                 ->icon('heroicon-m-share'), // Ícono opcional bonito
                 
-            'Estadísticas' => Tab::make()
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('group', 'Estadísticas'))
-                ->icon('heroicon-m-chart-bar'),
-                
-            'Textos Institucionales' => Tab::make()
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('group', 'Textos Institucionales'))
+            'Logo y nombre' => Tab::make()
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('group', 'General'))
                 ->icon('heroicon-m-document-text'),
+            
         ];
     }
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -9,6 +9,8 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
+  const [logoUrl, setLogoUrl] = useState("/IMG/Logo.jpg");
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout, isLoading } = useAuth();
   const navLinks = [
@@ -20,17 +22,27 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
     { name: "Noticias", path: "/news" },
     { name: "Contacto", path: "/#contacto" },
   ];
-
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.global_logo) {
+          setLogoUrl(`http://127.0.0.1:8000/storage/${data.global_logo}`);
+        }
+      })
+      .catch(err => console.error("Error al cargar el logo en Navbar:", err));
+  }, []);
   return (
     <header className="bg-azul-marino shadow-md sticky top-0 z-50 font-sans text-base">
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/">
-          <Image
-            src="/IMG/Logo.jpg"
-            alt="Fundación Nuestra Esperanza"
-            width={150} // Reducido para mejor ajuste en móviles
-            height={45}
-            className="cursor-pointer"
+          <Image 
+            src={logoUrl} 
+            alt="Fundación Nuestra Esperanza" 
+            width={150} // Ajusta según tu diseño
+            height={60} 
+            className="object-contain"
+            priority
           />
         </Link>
 

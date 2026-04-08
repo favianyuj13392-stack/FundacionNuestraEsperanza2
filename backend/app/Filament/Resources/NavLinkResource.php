@@ -37,13 +37,39 @@ class NavLinkResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Título del Enlace')
+                    ->searchable(),
+                
+                Tables\Columns\TextColumn::make('url')
+                    ->label('Ruta / URL')
+                    ->searchable(),
+                
+                Tables\Columns\BadgeColumn::make('location')
+                    ->label('Ubicación')
+                    ->colors([
+                        'primary' => 'both',
+                        'success' => 'header',
+                        'warning' => 'footer',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'header' => 'Solo Header',
+                        'footer' => 'Solo Footer',
+                        'both' => 'Ambos',
+                        default => $state,
+                    }),
+
+                Tables\Columns\TextColumn::make('order')
+                    ->label('Orden')
+                    ->sortable(),
             ])
+            ->defaultSort('order', 'asc') // Ordena por defecto basándose en la columna order
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -27,19 +27,27 @@ class SettingResource extends Resource
                     ->label('Clave (No modificar)')
                     ->disabled()
                     ->columnSpanFull(),
-
+                Forms\Components\Select::make('type')
+                    ->label('Tipo de contenido')
+                    ->options([
+                        'text' => 'Texto',
+                        'number' => 'Número',
+                        'image' => 'Imagen',
+                    ])
+                    ->live() 
+                    ->required(),
                 Forms\Components\FileUpload::make('value')
-                    ->label('Logo / Imagen')
+                    ->label('Subir Logo / Imagen')
                     ->disk('public')
                     ->directory('settings')
                     ->image()
-                    ->visible(fn ($record) => $record?->type === 'image')
+                    ->visible(fn (Forms\Get $get) => $get('type') === 'image')
                     ->columnSpanFull(),
 
                 Forms\Components\Textarea::make('value')
                     ->label('Valor (Texto/Enlace/Número)')
-                    ->required()
-                    ->visible(fn ($record) => $record?->type !== 'image')
+                    ->required(fn (Forms\Get $get) => $get('type') !== 'image') 
+                    ->visible(fn (Forms\Get $get) => $get('type') !== 'image')
                     ->columnSpanFull(),
             ]);
     }
@@ -47,17 +55,24 @@ class SettingResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('group', ['General', 'Redes Sociales']))
             ->columns([
                 Tables\Columns\TextColumn::make('key')
                     ->label('Clave interna')
                     ->searchable()
-                    ->color('gray'), // Lo ponemos gris para que no llame tanto la atención
+                    ->color('gray'), 
                     
+                // 1. Columna para la img
+                Tables\Columns\ImageColumn::make('value_image')
+                    ->label('Imagen')
+                    ->state(fn ($record) => $record->type === 'image' ? $record->value : null)
+                    ->disk('public'),
+
+                // 2. Columna para el texto (Oculta el texto de la ruta si es imagen)
                 Tables\Columns\TextColumn::make('value')
                     ->label('Valor (Lo que se muestra en la web)')
                     ->limit(50)
-                    ->searchable(),
+                    ->searchable()
+                    ->state(fn ($record) => $record->type !== 'image' ? $record->value : 'Imagen'),
             ])
             
             /*->defaultGroup(
@@ -77,7 +92,10 @@ class SettingResource extends Resource
             ]);
             
     }
-
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereIn('group', ['General', 'Redes Sociales']);
+    }
     public static function getRelations(): array
     {
         return [

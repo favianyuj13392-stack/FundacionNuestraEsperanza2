@@ -142,9 +142,13 @@ Route::post('/subscribe', function (Request $request) {
 
     return response()->json(['message' => 'Suscripción exitosa'], 201);
 });
-// 6. ENDPOINT PARA SETTINGS (HEADER, FOOTER Y STATS)
+// 6. ENDPOINT PARA SETTINGS
 Route::get('/settings', function () {
     return \App\Models\Setting::pluck('value', 'key'); 
+});
+// 7. ENDPOINT PARA LINKS MENÚ
+Route::get('/nav-links', function () {
+    return NavLink::orderBy('order')->get();
 });
 
 /*

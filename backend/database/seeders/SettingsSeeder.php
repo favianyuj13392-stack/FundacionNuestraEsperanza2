@@ -24,7 +24,8 @@ class SettingsSeeder extends Seeder
             ['key' => 'footer_about_text', 'value' => 'Haciendo una diferencia en la vida de los niños que padecen de cáncer en toda Bolivia.', 'type' => 'longtext', 'group' => 'Textos Institucionales'],
             
             // --- CONTACTO (Solo si tienes un botón de WhatsApp general en el Navbar/Footer) ---
-            ['key' => 'contact_whatsapp', 'value' => '+59170112236', 'type' => 'text', 'group' => 'Contacto'],
+            ['key' => 'contact_phone', 'value' => '+59170112236', 'type' => 'text', 'group' => 'Contacto'],
+            ['key' => 'contact_email', 'value' => '+59170112236', 'type' => 'text', 'group' => 'Contacto'],
             // LOGO
             ['key' => 'global_logo', 'value' => null, 'type' => 'image', 'group' => 'General'],
             ['key' => 'site_name', 'value' => 'Fundación Nuestra Esperanza', 'type' => 'text', 'group' => 'General'],

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -17,6 +17,17 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const API_URL = 'http://127.0.0.1:8000/api';
 
+  const [settings, setSettings] = useState<any>(null);
+  useEffect(() => {
+    fetch(`${API_URL}/settings`)
+      .then(res => res.json())
+      .then(data => setSettings(data))
+      .catch(err => console.error("Error cargando settings en Footer:", err));
+  }, []);
+  // Preparamos la URL del logo para el footer
+  const footerLogoUrl = settings?.global_logo 
+    ? `http://127.0.0.1:8000/storage/${settings.global_logo}` 
+    : "/IMG/Logo.jpg";
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
