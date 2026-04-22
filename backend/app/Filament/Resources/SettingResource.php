@@ -25,7 +25,7 @@ class SettingResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('key')
                     ->label('Clave (No modificar)')
-                    ->disabled()
+                    //->disabled()
                     ->dehydrated()
                     ->columnSpanFull(),
                 Forms\Components\Select::make('type')

@@ -14,6 +14,7 @@ use App\Models\ContactMessage;
 use App\Models\Subscriber;
 use Api\Models\Setting;
 use Api\Models\NavLink;
+use Api\Models\Stat;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,11 +103,7 @@ Route::get('/news', function () {
 Route::get('/testimonials', function () {
     return Testimonial::latest()->get()->map(function ($testimonial) {
         return [
-            // 'id' => $testimonial->id,
-            // 'name' => $testimonial->name,
-            // 'role' => $testimonial->role,
-            // 'message' => $testimonial->content, 
-            // 'image' => $testimonial->image ? asset('storage/' . $testimonial->image) : null,
+
             'id' => $testimonial->id,
             'name' => $testimonial->name,
             'content' => $testimonial->content, 
@@ -145,11 +142,11 @@ Route::post('/subscribe', function (Request $request) {
 });
 // 6. ENDPOINT PARA SETTINGS
 Route::get('/settings', function () {
-    return \App\Models\Setting::pluck('value', 'key'); 
+    return Setting::all()->pluck('value', 'key');
 });
 // 7. ENDPOINT PARA LINKS MENÚ
 Route::get('/nav-links', function () {
-    return response()->json(NavLink::orderBy('order', 'asc')->get());
+    return NavLink::orderBy('order', 'asc')->get();
 });
 // 8. ENDPOINT PARA STATS
 Route::get('/stats', function () {

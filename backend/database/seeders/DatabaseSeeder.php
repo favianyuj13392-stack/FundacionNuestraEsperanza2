@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             NavLinksSeeder::class,
             DataImportSeeder::class,
+            StatSeeder::class,
         ]);
     }
 }

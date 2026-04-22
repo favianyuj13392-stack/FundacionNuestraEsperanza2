@@ -1,46 +1,6 @@
 [
   {
     "id": 1,
-    "title": "Albergue",
-    "description": "Nuestra casita albergue 'UTAJA' (Mi Casa) ofrece un hogar seguro y cálido. Contamos con  11 dormitorios, totalmente equipados.",
-    "image": "programs/Albergue.jpg",
-    "color": "bg-celeste-fondo",
-    "is_active": 1,
-    "created_at": "2025-12-03 23:51:14",
-    "updated_at": "2025-12-03 23:57:56"
-  },
-  {
-    "id": 2,
-    "title": "Alimentación y Nutrición",
-    "description": "Contamos con una amplia cocina donde una encargada prepara alimentos completos y balanceados para padres y niños. Los padres de  niños que tienen recomendaciones de nutrición especial, tienen la posibilidad de preparar su alimento en la casa.",
-    "image": "programs/ALIMENTACION.jpg",
-    "color": "bg-celeste-fondo",
-    "is_active": 1,
-    "created_at": "2025-12-04 00:24:50",
-    "updated_at": "2025-12-04 00:24:50"
-  },
-  {
-    "id": 3,
-    "title": "Área de juegos y esparcimiento",
-    "description": "Contamos con un espacio donde los niños pueden jugar, descansar , al igual que los padres, con mobiliario cómodo, televisión por cable, música, video juegos.",
-    "image": "programs/AREADEJUEGOS.jpg",
-    "color": "bg-celeste-fondo",
-    "is_active": 1,
-    "created_at": "2025-12-04 00:27:29",
-    "updated_at": "2025-12-04 00:27:29"
-  },
-  {
-    "id": 4,
-    "title": "Apoyo Psicológico",
-    "description": "Disponemos de un gabinete de psicología y equipo de psicólogas para apoyar a niños y padres. También se realizan capacitaciones para las familias y voluntarias. El equipo apoya a familias, donde sea que se encuentren, durante la etapa de cuidados paliativos de los pacientes. ",
-    "image": "programs/PSICOLOGIA.JPG",
-    "color": "bg-celeste-fondo",
-    "is_active": 1,
-    "created_at": "2025-12-04 00:28:47",
-    "updated_at": "2025-12-04 00:28:47"
-  },
-  {
-    "id": 5,
     "title": "Transporte Seguro",
     "description": "Para evitar contagios por utilizar medios de transporte masivo, otorgamos un servicio de taxi para ir y volver de hospitales, centro de radioterapia, estación de buses, etc.",
     "image": "programs/TransporteSeguro.jpg",
@@ -50,7 +10,7 @@
     "updated_at": "2025-12-04 00:31:21"
   },
   {
-    "id": 6,
+    "id": 2,
     "title": "Sobrevivientes",
     "description": "La Fundación hace seguimiento a  sobrevivientes que durante su tratamiento estuvieron en la casita. Gestionamos becas universitarias, recientemente tuvimos Baby Shower para dos sobrevivientes que acaban de ser mamás. Se organizan encuentros de sobrevivientes a nivel local y nacional y también son miembros de asociaciones de sobrevivientes internacionales.",
     "image": "programs/SOBREVIVIENTES.jpg",
@@ -60,7 +20,7 @@
     "updated_at": "2025-12-04 00:33:02"
   },
   {
-    "id": 7,
+    "id": 3,
     "title": "Cabello para todas",
     "description": "Recibimos donación de cabello y hacemos turbantes con cabellos, los cuales están a la venta. Con el dinero recaudado se paga la confección de los mismos y se regalan turbantes a las niñas de la casita.",
     "image": "programs/CABELLOPARATODAS.jpg",

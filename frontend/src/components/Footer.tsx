@@ -110,12 +110,12 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
               )}
               {settings?.social_instagram && (
                 <a href={settings.social_instagram} target="_blank" rel="noreferrer" className="hover:scale-110 transition-transform">
-                  <Image src="/IMG/ic_tiktok.png" alt='TikTok' width={30} height={30} className="bg-white rounded-full p-1" />
+                  <Image src="/IMG/ic_instagram.png" alt='Instagram' width={30} height={30} className="bg-white rounded-full p-1" />
                 </a>
               )}
               {settings?.social_tiktok && (
                 <a href={settings.social_tiktok} target="_blank" rel="noreferrer" className="hover:scale-110 transition-transform">
-                  <Image src="/IMG/ic_instagram.png" alt='Instagram' width={30} height={30} className="bg-white rounded-full p-1" />
+                  <Image src="/IMG/ic_tiktok.png" alt='TikTok' width={30} height={30} className="bg-white rounded-full p-1" />
                 </a>
               )}
             </div>
