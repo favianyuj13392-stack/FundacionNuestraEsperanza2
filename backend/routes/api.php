@@ -15,6 +15,7 @@ use App\Models\Subscriber;
 use App\Models\Setting;
 use App\Models\NavLink;
 use App\Models\Stat;
+use App\Models\HomeSection;
 
 /*
 |--------------------------------------------------------------------------
@@ -151,6 +152,10 @@ Route::get('/nav-links', function () {
 // 8. ENDPOINT PARA STATS
 Route::get('/stats', function () {
     return response()->json(\App\Models\Stat::all());
+});
+// 9. ENPOINT PARA HOME
+Route::get('/home-sections', function () {
+    return HomeSection::pluck('is_active', 'identifier');
 });
 /*
 |--------------------------------------------------------------------------
