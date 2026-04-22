@@ -12,9 +12,9 @@ use App\Models\News;
 use App\Models\Testimonial;
 use App\Models\ContactMessage;
 use App\Models\Subscriber;
-use Api\Models\Setting;
-use Api\Models\NavLink;
-use Api\Models\Stat;
+use App\Models\Setting;
+use App\Models\NavLink;
+use App\Models\Stat;
 
 /*
 |--------------------------------------------------------------------------

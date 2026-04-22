@@ -15,11 +15,6 @@ class SettingsSeeder extends Seeder
             ['key' => 'social_instagram', 'value' => 'https://www.instagram.com/accounts/login/?next=%2Ffundacionnuestraesperanza&source=omni_redirect', 'type' => 'text', 'group' => 'Redes Sociales'],
             ['key' => 'social_tiktok', 'value' => 'https://www.tiktok.com/@fund.nuestra.esperanza', 'type' => 'text', 'group' => 'Redes Sociales'],
 
-            // --- ESTADÍSTICAS (Para el componente Stats.tsx) ---
-            ['key' => 'stats_ninos_ayudados', 'value' => '250', 'type' => 'number', 'group' => 'Estadísticas'],
-            ['key' => 'stats_diagnosticos_anuales', 'value' => '430', 'type' => 'number', 'group' => 'Estadísticas'],
-            ['key' => 'stats_voluntarias', 'value' => '20', 'type' => 'number', 'group' => 'Estadísticas'],
-
             // --- TEXTOS INSTITUCIONALES (Para la descripción corta del Footer) ---
             ['key' => 'footer_about_text', 'value' => 'Haciendo una diferencia en la vida de los niños que padecen de cáncer en toda Bolivia.', 'type' => 'longtext', 'group' => 'Textos Institucionales'],
             

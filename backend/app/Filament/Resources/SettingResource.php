@@ -23,74 +23,65 @@ class SettingResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('key')
-                    ->label('Clave (No modificar)')
-                    //->disabled()
-                    ->dehydrated()
-                    ->columnSpanFull(),
-                Forms\Components\Select::make('type')
-                    ->label('Tipo de contenido')
-                    ->options([
-                        'text' => 'Texto',
-                        'number' => 'Número',
-                        'image' => 'Imagen',
-                    ])
-                    ->live() 
-                    ->required(),
-                Forms\Components\FileUpload::make('value')
-                    ->label('Subir Logo / Imagen')
-                    ->disk('public')
-                    ->directory('settings')
-                    ->image()
-                    ->visible(fn (Forms\Get $get) => $get('type') === 'image')
-                    ->columnSpanFull(),
+            Forms\Components\Section::make('Detalles de la Configuración')
+                ->schema([
+                    // La clave solo se lee, no se toca para no romper la web
+                    Forms\Components\TextInput::make('key')
+                        ->label('Nombre del ajuste')
+                        ->formatStateUsing(fn ($state) => str_replace('_', ' ', ucfirst($state)))
+                        ->disabled()
+                        ->dehydrated(false),
+                    Forms\Components\Hidden::make('type'),
+                    // Campo de texto: Solo aparece si el tipo NO es imagen
+                    // Aquí aparecerá tu link de Facebook, Instagram, etc.
+                    Forms\Components\TextInput::make('value')
+                        ->label('Contenido / Enlace')
+                        ->required()
+                        ->visible(fn ($record) => $record && $record->type !== 'image')
+                        ->placeholder('Introduce el link o texto aquí...'),
 
-                Forms\Components\Textarea::make('value')
-                    ->label('Valor (Texto/Enlace/Número)')
-                    ->required(fn (Forms\Get $get) => $get('type') !== 'image') 
-                    ->visible(fn (Forms\Get $get) => $get('type') !== 'image')
-                    ->columnSpanFull(),
-            ]);
+                    // Campo de imagen: Solo aparece si el tipo ES imagen (como el logo)
+                    Forms\Components\FileUpload::make('value')
+                        ->label('Imagen / Logo')
+                        ->disk('public')
+                        ->directory('settings')
+                        ->image()
+                        ->visible(fn ($record) => $record && $record->type === 'image')
+                        ->dehydrated(fn ($state) => filled($state)),
+                    
+                ])
+        ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('key')
-                    ->label('Clave interna')
-                    ->searchable()
-                    ->color('gray'), 
-                    
-                // 1. Columna para la img
-                Tables\Columns\ImageColumn::make('value_image')
-                    ->label('Imagen')
-                    ->state(fn ($record) => $record->type === 'image' ? $record->value : null)
-                    ->disk('public'),
+        ->columns([
+            Tables\Columns\TextColumn::make('key')
+                ->label('Configuración')
+                ->formatStateUsing(fn ($state) => $state ? str_replace('_', ' ', ucfirst($state)) : 'Sin clave')
+                ->searchable(),
+        
 
-                // 2. Columna para el texto (Oculta el texto de la ruta si es imagen)
-                Tables\Columns\TextColumn::make('value')
-                    ->label('Valor (Lo que se muestra en la web)')
-                    ->limit(50)
-                    ->searchable()
-                    ->state(fn ($record) => $record->type !== 'image' ? $record->value : 'Imagen'),
-            ])
-            
-            /*->defaultGroup(
-                Tables\Grouping\Group::make('group')
-                    ->label('Sección')
-                    ->collapsible()
-            )*/
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label('Editar'), // Un toque más en español
-            ])
-            ->bulkActions([
-                // Vacío por seguridad
-            ]);
+            Tables\Columns\ImageColumn::make('value')
+                ->label('Imagen / Logo')
+                ->disk('public')
+                // Usamos el operador null-safe (?->) por seguridad
+                ->visible(fn ($record) => $record?->type === 'image')
+                ->defaultImageUrl(url('/images/placeholder.png'))
+                ->size(40), // Evita el icono de imagen rota
+
+            // Columna de Texto: Solo se activa si el tipo NO es image
+            Tables\Columns\TextColumn::make('value_text') 
+                ->label('Contenido / Enlace')
+                ->state(fn ($record) => $record?->type !== 'image' ? $record->value : null)
+                ->limit(40)
+                ->visible(fn ($record) => $record?->type !== 'image')
+                ->placeholder('Sin valor asignado'), // Maneja el null visualmente
+        ])
+        ->actions([
+            Tables\Actions\EditAction::make()->label('Editar'),
+        ]);
             
     }
     public static function getEloquentQuery(): Builder

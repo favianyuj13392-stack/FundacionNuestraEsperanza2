@@ -16,7 +16,7 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const API_URL = 'http://127.0.0.1:8000/api';
-
+  const STORAGE_URL = 'http://127.0.0.1:8000/storage';
   const [settings, setSettings] = useState<any>(null);
   const [navLinks, setNavLinks] = useState<any[]>([]);
 
@@ -66,11 +66,11 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
   // -----------------------------------------------------
   // Enlaces por defecto en caso de que Filament esté vacío por ahora
   const defaultLinks = [
-    { title: "Inicio", url: "/" },
+    { title: "Inicio", url: "/" },/*
     { title: "Quiénes Somos", url: "/quienes-somos" },
     { title: "Programas", url: "/programas" },
     { title: "Cómo Ayudar", url: "/como-ayudar" },
-    { title: "Noticias", url: "/news" },
+    { title: "Noticias", url: "/news" },*/
   ];
   const linksToDisplay = navLinks.length > 0 ? navLinks : defaultLinks;
   // Enlace de WhatsApp para Voluntarios
@@ -84,14 +84,10 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
           
           {/* Logo */}
           <div className="flex items-center sm:col-span-2 lg:col-span-1 justify-center lg:justify-start">
-            <div className="relative w-48 h-48">
-                <Image 
-                  src={footerLogoUrl} 
-                  alt="Logo Fundación Nuestra Esperanza" 
-                  width={160} 
-                  height={60} 
-                  className="object-contain rounded-lg p-2 mb-4" 
-                />
+            <div className="relative w-60 h-60">
+                {settings?.global_logo && (
+                  <Image src={`${STORAGE_URL}/${settings.global_logo}`} alt="Logo" width={200} height={200} className=" object-contain" />
+                )}
             </div>
           </div>
           
@@ -127,7 +123,7 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
             <ul className="space-y-2 text-sm font-sans">
               {linksToDisplay.map((link, index) => (
                 <li key={index}>
-                  <Link href={link.url} className="hover:text-rosa-principal transition duration-300">
+                  <Link href={link.url} className="hover:text-rosa-principal text-white transition duration-300 font-sans">
                     {link.title}
                   </Link>
                 </li>

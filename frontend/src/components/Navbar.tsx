@@ -65,7 +65,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
             <Link 
               key={link.id} 
               href={link.url} 
-              className="hover:text-rosa-principal transition duration-300"
+              className="hover:text-rosa-principal  text-white transition duration-300 font-sans"
             >
               {link.title}
             </Link>
@@ -125,7 +125,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
         <div className="lg:hidden bg-azul-marino">
           <div className="flex flex-col items-center py-4 space-y-4">
             {navLinks.map((link) => (
-              <Link key={link.id} href={link.url} className="text-lg" onClick={() => setIsMenuOpen(false)}>
+              <Link key={link.id} href={link.url} className="text-lg text-white hover:text-rosa-principal transition duration-300" onClick={() => setIsMenuOpen(false)}>
                 {link.title}
               </Link>
             ))}
