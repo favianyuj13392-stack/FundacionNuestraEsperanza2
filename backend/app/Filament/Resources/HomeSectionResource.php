@@ -21,7 +21,7 @@ use Awcodes\Curator\Components\Forms\CuratorPicker;
 class HomeSectionResource extends Resource
 {
     protected static ?string $model = HomeSection::class;
-    protected static ?string $navigationGroup = 'Contenido Web';
+    protected static ?string $navigationGroup = 'Sección';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -30,11 +30,11 @@ class HomeSectionResource extends Resource
         ->schema([
             Forms\Components\Section::make('Identificación de la Sección')
                 ->schema([
-                    Forms\Components\TextInput::make('key')
-                        ->label('Identificador Técnico (Key)')
+                    Forms\Components\TextInput::make('identifier')
+                        ->label('Identificador Técnico (identifier)')
                         ->helperText('Debe coincidir con el nombre en el código (ej: "hero", "stats")')
                         ->required()
-                        ->unique(ignoreRecord: true)
+                        ->unique(table: 'home_sections', column: 'identifier', ignoreRecord: true)
                         ->disabled(fn ($record) => $record !== null) 
                         ->dehydrated(), 
 
@@ -47,15 +47,16 @@ class HomeSectionResource extends Resource
                         ->default(true)
                         ->onColor('success'),
 
-                    Forms\Components\TextInput::make('order')
-                        ->label('Orden de aparición')
-                        ->numeric()
-                        ->default(0),
+                    Forms\Components\Select::make('order')
+                        ->label('Posición en la página')
+                        ->options(array_combine(range(1, 20), range(1, 20))) // Genera opciones del 1 al 20
+                        ->default(fn () => \App\Models\HomeSection::max('order') + 1) // Sugiere el siguiente
+                        ->required(),
                     CuratorPicker::make('image')
                     ->label('Imagen de la Sección')
                     ->buttonLabel('Seleccionar de la Biblioteca')
                     ->directory('home-sections') // RF-05: Carpeta organizada
-                    ->imageCropAspectRatio('16:9') // RNF-06: Optimización
+                    ->imageCropAspectRatio('16:9'), // RNF-06: Optimización
                 ])
         ]);
     }

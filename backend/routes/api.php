@@ -3,9 +3,8 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\DonationController;
-use App\Http\Controllers\AdminDonationController; // Asegúrate de tener este controlador
-use App\Http\Controllers\PublicDonationController; // Asegúrate de tener este controlador
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminDonationController;
+use App\Http\Controllers\PublicDonationController; 
 use Illuminate\Http\Request;
 use App\Models\Program;
 use App\Models\News;
