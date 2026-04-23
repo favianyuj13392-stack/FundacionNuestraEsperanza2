@@ -21,7 +21,7 @@ use Awcodes\Curator\Components\Forms\CuratorPicker;
 class HomeSectionResource extends Resource
 {
     protected static ?string $model = HomeSection::class;
-
+    protected static ?string $navigationGroup = 'Contenido Web';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
