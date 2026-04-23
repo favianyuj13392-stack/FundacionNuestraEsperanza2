@@ -22,8 +22,10 @@ class DatabaseSeeder extends Seeder
             TestUserSeeder::class,
             SettingsSeeder::class,
             NavLinksSeeder::class,
-            DataImportSeeder::class,
             StatSeeder::class,
+            HomeSectionSeeder::class,
+            DataImportSeeder::class,
+            
         ]);
     }
 }
