@@ -2,11 +2,14 @@ api:
   dashboard: true
 
 providers:
+  docker:
+    exposedByDefault: false
+    network: proxy
   file:
     directory: /etc/traefik/dynamic
     watch: true
 
 log:
-  level: INFO
+  level: DEBUG
 
 accessLog: {}
