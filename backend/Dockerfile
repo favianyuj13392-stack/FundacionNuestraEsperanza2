@@ -28,6 +28,13 @@ WORKDIR /var/www/html
 # Copiar el código del proyecto
 COPY . .
 
+# Crear directorios requeridos por Laravel (vacíos por .gitignore)
+RUN mkdir -p storage/framework/views \
+    storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/logs \
+    bootstrap/cache
+
 # Instalar dependencias de producción
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
