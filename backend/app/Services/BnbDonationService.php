@@ -471,24 +471,42 @@ class BnbDonationService
         }
 
         $token = $this->authenticate();
-
-        if (!$token) {
-            return null;
-        }
+        if (!$token) return null;
 
         $url = "{$this->baseUrlSimple}/main/getQRStatusAsync";
 
+        // === HARDCORE MODE: Manual JSON Construction ===
+        $jsonPayload = '{"qrId":"' . addslashes($qrId) . '"}';
+
+        // === HARDCORE MODE: Explicit Headers ===
+        $forcedHeaders = [
+            'Authorization' => 'Bearer ' . $token,
+            'Content-Type' => 'application/json',
+            'cache-control' => 'no-cache',
+            'User-Agent' => 'PostmanRuntime/7.32.0',
+            'Accept' => 'application/json'
+        ];
+
         try {
-            $response = Http::withToken($token)->post($url, ['qrId' => $qrId]);
+            $this->setupSslCertificate();
+
+            $response = Http::withHeaders($forcedHeaders)
+                ->withBody($jsonPayload, 'application/json')
+                ->timeout(10)
+                ->post($url);
 
             if ($response->successful()) {
                 return $response->json();
             }
             
-            Log::error('BNB Check Status Failed', ['body' => $response->body()]);
+            Log::error('BNB Check Status Failed', [
+                'qrId' => $qrId,
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
             return null;
         } catch (\Exception $e) {
-            Log::error('BNB Check Status Exception', ['message' => $e->getMessage()]);
+            Log::error('BNB Check Status Exception', ['qrId' => $qrId, 'message' => $e->getMessage()]);
             return null;
         }
     }

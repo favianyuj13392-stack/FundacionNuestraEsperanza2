@@ -5,15 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Función auxiliar para obtener cookies (necesaria para CSRF de Laravel)
-function getCookie(name: string) {
-  if (typeof document === 'undefined') return null;
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-  return null;
-}
-
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,21 +23,12 @@ export default function LoginPage() {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
     try {
-      // 1. Solicitar CSRF Cookie (Protección de Laravel)
-      await fetch(`${API_URL}/sanctum/csrf-cookie`, { 
-          method: 'GET',
-          credentials: 'include', // <--- Importante para guardar la cookie
-      });
-      const xsrfToken = getCookie('XSRF-TOKEN');
-
-      // 2. Intentar Login
+      // Login directo con tokens bearer (sin CSRF cookies)
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
-        credentials: 'include', // <--- Importante para enviar cookies de sesión
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-XSRF-TOKEN': xsrfToken ? decodeURIComponent(xsrfToken) : '',
         },
         body: JSON.stringify({ email, password }),
       });
@@ -62,38 +44,26 @@ export default function LoginPage() {
 
       // --- ¡ÉXITO! ---
       // La respuesta del backend es: { message: "...", data: { user: {...}, token: "..." } }
-      // Por lo tanto, 'data' aquí contiene todo el JSON. Accedemos a data.data
       const responseData = data.data;
 
       if (responseData && responseData.user && responseData.token) {
         login(responseData.user, responseData.token); // Usamos la función del AuthContext
         
         // Check for redirect param
-        // Note: For client component we can use window.location or searchParams if we wrap in Suspense. Only checking query manually here might be tricky if not using useSearchParams.
-        // Let's rely on checking URL directly if necessary or use window.location.search
         const urlParams = new URLSearchParams(window.location.search);
         const redirect = urlParams.get('redirect');
         
         if (redirect === 'back') {
-             router.back(); // If logic was purely history based
-             // But usually we might want to go to a specific page.
-             // If we saved state in localStorage, 'back' (meaning reloading the page that sent us here) is usually okay IF that page reads localStorage.
-             // But router.back() might not reload.
-             // Let's assume the user came from /programas. 
-             // Ideally we should pass the full path.
-             // But for now, let's just go back.
              router.back();
-        } else if (redirect) {
-            router.push(redirect);
         } else {
-            router.push('/perfil'); // Redirigimos al perfil del usuario
+          router.push('/perfil'); // Redirigir al perfil del usuario
         }
       } else {
-        setError(data.message || 'Credenciales incorrectas');
+        setError('Respuesta del servidor inválida.');
       }
-    } catch (err) {
-      console.error(err);
-      setError('Error de conexión con el servidor');
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Error de conexión. Inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }

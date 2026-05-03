@@ -1,0 +1,144 @@
+services:
+  # --- BACKEND: PHP-FPM ---
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fundacion_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    env_file: .env
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - fundacion_internal
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # --- BACKEND: NGINX ---
+  web:
+    image: nginx:alpine
+    container_name: fundacion_nginx
+    restart: unless-stopped
+    volumes:
+      - ./backend:/var/www/html
+      - ./backend/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - fundacion_internal
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fundacion-api.rule=Host(`api.fundacion-nuestra-esperanza.cloud`)"
+      - "traefik.http.routers.fundacion-api.entrypoints=websecure"
+      - "traefik.http.routers.fundacion-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.fundacion-api.middlewares=security-headers@file,compress@file,ratelimit@file"
+      - "traefik.http.services.fundacion-api.loadbalancer.server.port=80"
+    depends_on:
+      - app
+
+  # --- FRONTEND: NEXT.JS ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fundacion_frontend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+    # Puertos para pruebas locales (descomentar si es necesario)
+    command: node server.js
+    networks:
+      - proxy
+    deploy:
+      resources:
+        limits:
+          memory: 800m
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fundacion-frontend.rule=Host(`fundacion-nuestra-esperanza.cloud`)"
+      - "traefik.http.routers.fundacion-frontend.entrypoints=websecure"
+      - "traefik.http.routers.fundacion-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.fundacion-frontend.middlewares=security-headers@file,compress@file,ratelimit@file"
+      - "traefik.http.services.fundacion-frontend.loadbalancer.server.port=3000"
+
+  # --- DATABASE: MYSQL ---
+  db:
+    image: mysql:8.0
+    container_name: fundacion_db
+    restart: unless-stopped
+    command: --innodb-buffer-pool-size=1G --max-connections=100
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-foundation}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - fundacion_db_data:/var/lib/mysql
+    networks:
+      - fundacion_internal
+    deploy:
+      resources:
+        limits:
+          memory: 1.5g
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p$DB_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- CACHE: REDIS ---
+  redis:
+    image: redis:alpine
+    container_name: fundacion_redis
+    restart: unless-stopped
+    networks:
+      - fundacion_internal
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- QUEUE WORKER: LARAVEL ---
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fundacion_worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    env_file: .env
+    command: php artisan queue:work --verbose --tries=3 --timeout=90
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - fundacion_internal
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  proxy:
+    external: true
+  fundacion_internal:
+    driver: bridge
+
+volumes:
+  fundacion_db_data:

@@ -1,27 +1,32 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Si estás exportando estáticamente (para Hostinger compartido):
-  output: 'export',
+  // Salida standalone para contenedor Docker Node.js
+  output: 'standalone',
 
   images: {
-    unoptimized: true, // Necesario para 'next export'
-    // Añadir los dominios donde se alojan tus imágenes
-    domains: ['127.0.0.1', 'localhost'],
+    // Si necesitas optimización de Next.js, puedes dejar esto como false o quitarlo
+    // unoptimized: true, 
+    
     remotePatterns: [
       {
+        protocol: 'https',
+        hostname: 'api.fundacion-nuestra-esperanza.cloud', // Dominio de producción
+        pathname: '/storage/**',
+      },
+      // Dominios para entorno local:
+      {
         protocol: 'http',
-        hostname: '127.0.0.1', // Permite imágenes de tu IP local
-        port: '8000',          // El puerto de Laravel
+        hostname: '127.0.0.1',
+        port: '8000',
+        pathname: '/storage/**',
       },
       {
         protocol: 'http',
-        hostname: 'localhost', // Por si acaso
+        hostname: 'localhost',
         port: '8000',
-        pathname: '/storage/**', // Ruta de almacenamiento
-      },
-      // Cuando subas a Hostinger, agrega aquí tu dominio real:
-      // { protocol: 'https', hostname: 'tufundacion.org', ... }
+        pathname: '/storage/**',
+      }
     ],
   },
 };

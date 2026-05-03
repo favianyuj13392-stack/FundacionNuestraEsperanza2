@@ -1,0 +1,29 @@
+http:
+  middlewares:
+    # Autenticación Básica (admin / password123)
+    # Generado con: htpasswd -nB admin
+    auth:
+      basicAuth:
+        users:
+          - "favianyuj:$$2y$$05$$Dl5wotugrFz.VLAej3XsguJLND1/pX7YeYms58zN4AePVZVfV0Ew2"
+
+    # Cabeceras de Seguridad
+    security-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        frameDeny: true
+        customFrameOptionsValue: "SAMEORIGIN"
+
+    # Compresión Gzip
+    compress:
+      compress: {}
+
+    ratelimit:
+      rateLimit:
+        average: 100
+        burst: 50

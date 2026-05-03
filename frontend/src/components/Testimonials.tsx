@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 
 // --- 1. CONFIGURACIÓN DE URL DEL BACKEND (Igual que en Programs) ---
 // Define aquí la dirección de tu backend Laravel.
-const LARAVEL_BASE_URL = 'http://127.0.0.1:8000'; 
+const LARAVEL_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'; 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api'; 
 
 // --- 2. FUNCIÓN HELPER PARA IMÁGENES (Igual que en Programs) ---
 const getImageUrl = (imagePath: string | null) => {
@@ -49,7 +50,7 @@ const TestimonialsSection = () => {
     const fetchTestimonials = async () => {
       try {
         // Usamos la constante o una variable de entorno para la API
-        const response = await fetch(`${LARAVEL_BASE_URL}/api/testimonials`);
+        const response = await fetch(`${API_BASE_URL}/testimonials`);
         if (!response.ok) {
             throw new Error(`Error en la respuesta de la API: ${response.status}`);
         }

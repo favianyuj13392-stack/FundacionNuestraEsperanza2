@@ -15,7 +15,7 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
   // --- Lógica de Suscripción (Integrada aquí también) ---
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const API_URL = 'http://127.0.0.1:8000/api';
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();

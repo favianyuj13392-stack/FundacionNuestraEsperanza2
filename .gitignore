@@ -1,0 +1,46 @@
+# === ENTORNOS Y SECRETOS ===
+.env
+.env.*
+!.env.example
+
+# === PYTHON ===
+.venv/
+
+# === NODE / NEXT.JS ===
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# === LARAVEL / PHP ===
+fundacion-esperanza/vendor/
+fundacion-esperanza/node_modules/
+fundacion-esperanza/storage/logs/*.log
+fundacion-esperanza/storage/framework/cache/
+fundacion-esperanza/storage/framework/sessions/
+fundacion-esperanza/storage/framework/views/
+fundacion-esperanza/bootstrap/cache/*.php
+fundacion-esperanza/public/hot
+fundacion-esperanza/public/storage
+
+# Si la carpeta se llama backend:
+backend/vendor/
+backend/node_modules/
+backend/storage/logs/*.log
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/bootstrap/cache/*.php
+backend/public/hot
+backend/public/storage
+
+# === SISTEMA ===
+.DS_Store
+Thumbs.db
+
+# === IDE ===
+.vscode/
+.idea/
+
+# === DOCKER (no subir datos locales) ===
+db/

@@ -1,8 +1,13 @@
 import axios from 'axios';
-axios.defaults.withCredentials = true; // Ensure cookies are sent for Sanctum auth
 
 // Get API URL from env or default
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+
+// Configure axios to include auth token
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export interface DonationTier {
     id: number;
@@ -34,7 +39,9 @@ export const donationService = {
      * Get available donation options
      */
     getOptions: async (): Promise<DonationTier[]> => {
-        const response = await axios.get<DonationTier[]>(`${API_URL}/api/public/donation-options`);
+        const response = await axios.get<DonationTier[]>(`${API_URL}/api/public/donation-options`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
@@ -64,7 +71,9 @@ export const donationService = {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
-        const response = await axios.post<QrResponse>(`${API_URL}/api/public/request-qr`, payload, config);
+        const response = await axios.post<QrResponse>(`${API_URL}/api/public/request-qr`, payload, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
@@ -72,7 +81,9 @@ export const donationService = {
      * Check status of a QR
      */
     checkStatus: async (qrId: string): Promise<{ status: string }> => {
-        const response = await axios.get<{ status: string }>(`${API_URL}/api/public/check-status/${qrId}`);
+        const response = await axios.get<{ status: string }>(`${API_URL}/api/public/check-status/${qrId}`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     },
 
@@ -80,11 +91,8 @@ export const donationService = {
      * Get logged-in user's donations
      */
     getMyDonations: async (): Promise<Donation[]> => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        if (!token) throw new Error("No authenticated");
-        
         const response = await axios.get(`${API_URL}/api/auth/donations/my`, {
-             headers: { Authorization: `Bearer ${token}` }
+            headers: getAuthHeaders()
         });
         
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
