@@ -4,8 +4,14 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# Asegurar que Next.js genere la carpeta standalone
+
+# Variables de entorno que Next.js incrusta en el build
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PRIVATE_STANDALONE=true
+
 RUN npm run build
 
 # Stage 2: Production
