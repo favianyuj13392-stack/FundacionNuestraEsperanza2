@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Rol;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 class RolesSeeder extends Seeder
@@ -10,13 +10,13 @@ class RolesSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            ['nombre' => 'admin','descripcion' => 'Acceso total'],
-            ['nombre' => 'editor','descripcion' => 'CMS y campañas'],
-            ['nombre' => 'tesorero','descripcion' => 'Finanzas y donaciones'],
-            ['nombre' => 'viewer','descripcion' => 'Solo lectura'],
+            ['name' => 'admin','description' => 'Acceso total'],
+            ['name' => 'editor','description' => 'CMS y campañas'],
+            ['name' => 'tesorero','description' => 'Finanzas y donaciones'],
+            ['name' => 'viewer','description' => 'Solo lectura'],
         ];
         foreach ($roles as $r) {
-            Rol::firstOrCreate(['nombre' => $r['nombre']], $r);
+            Role::firstOrCreate(['name' => $r['name']], $r);
         }
     }
 }

@@ -5,7 +5,7 @@ http:
     auth:
       basicAuth:
         users:
-          - "favianyuj:$$2y$$05$$Dl5wotugrFz.VLAej3XsguJLND1/pX7YeYms58zN4AePVZVfV0Ew2"
+          - "favianyuj:$2y$05$Dl5wotugrFz.VLAej3XsguJLND1/pX7YeYms58zN4AePVZVfV0Ew2"
 
     # Cabeceras de Seguridad
     security-headers:
