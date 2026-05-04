@@ -19,6 +19,12 @@ RUN apk add --no-cache \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip xml intl
 
+# Instalar extensión Redis
+RUN apk add --no-cache autoconf g++ make \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del autoconf g++ make
+
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
