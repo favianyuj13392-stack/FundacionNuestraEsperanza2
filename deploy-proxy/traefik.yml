@@ -9,6 +9,25 @@ providers:
     directory: /etc/traefik/dynamic
     watch: true
 
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@fundacion-nuestra-esperanza.cloud
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
 log:
   level: DEBUG
 
