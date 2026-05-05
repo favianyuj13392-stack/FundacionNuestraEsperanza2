@@ -3,9 +3,10 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\DonationController;
-use App\Http\Controllers\AdminDonationController; // Asegúrate de tener este controlador
-use App\Http\Controllers\PublicDonationController; // Asegúrate de tener este controlador
+use App\Http\Controllers\AdminDonationController;
+use App\Http\Controllers\PublicDonationController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Models\Program;
 use App\Models\News;
@@ -76,8 +77,8 @@ Route::get('/programs', function () {
         return [
             'id' => $program->id,
             'title' => $program->title,
-            'description' => $program->description, 
-            'image' => $program->image ? asset('storage/' . $program->image) : null,
+            'description' => $program->description,
+            'image' => $program->image ? Storage::url($program->image) : null,
             'color' => $program->color,
         ];
     });
@@ -90,7 +91,7 @@ Route::get('/news', function () {
             'id' => $news->id,
             'title' => $news->title,
             'content' => $news->content,
-            'image' => $news->image ? asset('storage/' . $news->image) : null,
+            'image' => $news->image ? Storage::url($news->image) : null,
             'date' => $news->publication_date ? $news->publication_date->format('d/m/Y') : null,
         ];
     });
@@ -100,19 +101,14 @@ Route::get('/news', function () {
 Route::get('/testimonials', function () {
     return Testimonial::latest()->get()->map(function ($testimonial) {
         return [
-            // 'id' => $testimonial->id,
-            // 'name' => $testimonial->name,
-            // 'role' => $testimonial->role,
-            // 'message' => $testimonial->content, 
-            // 'image' => $testimonial->image ? asset('storage/' . $testimonial->image) : null,
             'id' => $testimonial->id,
             'name' => $testimonial->name,
-            'content' => $testimonial->content, 
-            'type' => $testimonial->type ?? 'image', 
+            'content' => $testimonial->content,
+            'type' => $testimonial->type ?? 'image',
             'embedUrl' => $testimonial->embed_url ?? null,
             'externalLink' => $testimonial->external_link ?? '#',
             'age' => $testimonial->age ?? '',
-            'image' => $testimonial->image ? asset('storage/' . $testimonial->image) : null,
+            'image' => $testimonial->image ? Storage::url($testimonial->image) : null,
         ];
     });
 });
