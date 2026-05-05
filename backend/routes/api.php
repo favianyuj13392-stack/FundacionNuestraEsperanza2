@@ -78,7 +78,7 @@ Route::get('/programs', function () {
             'id' => $program->id,
             'title' => $program->title,
             'description' => $program->description,
-            'image' => $program->image ? Storage::url($program->image) : null,
+            'image' => $program->image ? url('storage/' . $program->image) : null,
             'color' => $program->color,
         ];
     });
@@ -91,7 +91,7 @@ Route::get('/news', function () {
             'id' => $news->id,
             'title' => $news->title,
             'content' => $news->content,
-            'image' => $news->image ? Storage::url($news->image) : null,
+            'image' => $news->image ? url('storage/' . $news->image) : null,
             'date' => $news->publication_date ? $news->publication_date->format('d/m/Y') : null,
         ];
     });
@@ -108,7 +108,7 @@ Route::get('/testimonials', function () {
             'embedUrl' => $testimonial->embed_url ?? null,
             'externalLink' => $testimonial->external_link ?? '#',
             'age' => $testimonial->age ?? '',
-            'image' => $testimonial->image ? Storage::url($testimonial->image) : null,
+            'image' => $testimonial->image ? url('storage/' . $testimonial->image) : null,
         ];
     });
 });
