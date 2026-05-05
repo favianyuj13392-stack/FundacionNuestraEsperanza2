@@ -69,11 +69,10 @@ export default function RegisterPage() {
       }
 
       // --- ¡ÉXITO! ---
-      // 'data' debería tener la forma: { user: {...}, token: "..." }
-      // Esto debe coincidir con lo que te devuelve Laravel
-      if (data.user && data.token) {
-        login(data.user, data.token); // Usamos la función del AuthContext
-        router.push("/perfil"); // Redirigimos al perfil del usuario
+      // El backend devuelve: { message: "...", data: { token: "...", user: {...} } }
+      if (data.data?.user && data.data?.token) {
+        login(data.data.user, data.data.token);
+        router.push("/perfil");
       } else {
         setError("Respuesta inesperada del servidor.");
       }
