@@ -24,11 +24,11 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
   return (
     <header className="bg-azul-marino shadow-md sticky top-0 z-50 font-sans text-base">
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link href="/">
+        <Link href="/" className="flex-shrink-0">
           <Image
             src="/IMG/Logo.jpg"
             alt="Fundación Nuestra Esperanza"
-            width={150} // Reducido para mejor ajuste en móviles
+            width={150}
             height={45}
             className="cursor-pointer"
           />
@@ -67,7 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
               <Link href="/login" className="text-white border border-white rounded-full px-6 py-2 hover:bg-white hover:text-azul-marino transition duration-300 font-button">
                 Login
               </Link>
-              <Link href="/registro" className="text-white hover:text-rosa-principal transition duration-300">
+              <Link href="/registro" className="text-white border border-white rounded-full px-6 py-2 hover:bg-white hover:text-azul-marino transition duration-300 font-button">
                 Registro
               </Link>
             </>
