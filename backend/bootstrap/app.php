@@ -51,9 +51,14 @@ return Application::configure(basePath: dirname(__DIR__))
      */
     ->withMiddleware(function (Middleware $middleware) {
         /**
+         * Confiar en el proxy inverso (Traefik) para que Laravel genere
+         * URLs HTTPS correctas y evite Mixed Content errors.
+         */
+        $middleware->trustProxies(at: '*');
+
+        /**
          * Le decimos a Laravel que use el guardián de Sanctum para
          * proteger TODAS las rutas definidas en routes/api.php.
-         * Esta es la segunda pieza crítica que la otra IA omitió.
          */
         $middleware->api(append: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
