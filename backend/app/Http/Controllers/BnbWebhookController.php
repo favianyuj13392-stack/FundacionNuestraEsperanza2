@@ -11,23 +11,10 @@ class BnbWebhookController extends Controller
 {
     public function handle(Request $request, \App\Services\BnbDonationService $bnbService)
     {
-        // 1. SECURITY: Secret Token Validation
-        $secret = $request->query('secret');
-        $expectedSecret = env('BNB_WEBHOOK_SECRET');
-
-        if (!$secret || $secret !== $expectedSecret) {
-            Log::warning('BNB Webhook: Invalid Secret Token', [
-                'ip' => $request->ip(),
-                'received' => $secret,
-                'expected' => $expectedSecret // BE CAREFUL: Only for debugging! Remove later.
-            ]);
-            return response()->json([
-                'success' => false, 
-                'message' => 'Unauthorized',
-                'debug_received' => $secret, // Returning purely for postman debug
-                'debug_expected' => $expectedSecret
-            ], 403);
-        }
+        // 1. SECURITY: Trust but Verify
+        // El secret por URL fue eliminado para evitar fricción con el banco.
+        // La seguridad está garantizada porque más abajo consultamos activamente
+        // el estado del QRId directamente a los servidores del BNB.
 
         // Log the incoming webhook for debugging
         Log::info('BNB Webhook Received', $request->all());
