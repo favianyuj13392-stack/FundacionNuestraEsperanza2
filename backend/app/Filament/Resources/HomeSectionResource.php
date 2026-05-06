@@ -38,7 +38,7 @@ class HomeSectionResource extends Resource
                         ->disabled(fn ($record) => $record !== null) 
                         ->dehydrated(), 
 
-                    Forms\Components\TextInput::make('title')
+                    Forms\Components\TextInput::make('name')
                         ->label('Nombre de la Sección (Para el Admin)')
                         ->required(),
 
@@ -53,10 +53,12 @@ class HomeSectionResource extends Resource
                         ->default(fn () => \App\Models\HomeSection::max('order') + 1) // Sugiere el siguiente
                         ->required(),
                     CuratorPicker::make('image')
-                    ->label('Imagen de la Sección')
-                    ->buttonLabel('Seleccionar de la Biblioteca')
-                    ->directory('home-sections') // RF-05: Carpeta organizada
-                    ->imageCropAspectRatio('16:9'), // RNF-06: Optimización
+                        ->label('Imagen de la Sección')
+                        ->buttonLabel('Seleccionar de la Biblioteca')
+                        ->directory('home-sections') // RF-05: Carpeta organizada
+                        ->constrained(true) // Esto limita el tamaño al contenedor
+                        ->size('sm')        // Hace la miniatura más pequeña en el panel
+                        ->imageCropAspectRatio('16:9'),
                 ])
         ]);
     }
