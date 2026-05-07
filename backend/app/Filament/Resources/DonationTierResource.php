@@ -41,8 +41,11 @@ class DonationTierResource extends Resource
                     ->required()
                     ->default(true)
                     ->label('Activo'),
-                Forms\Components\Hidden::make('currency_id')
-                    ->default(1),
+                Forms\Components\Select::make('currency_id')
+                    ->relationship('currency', 'iso_code')
+                    ->default(2)
+                    ->required()
+                    ->label('Moneda'),
             ]);
     }
 
