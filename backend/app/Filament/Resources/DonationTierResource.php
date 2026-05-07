@@ -41,11 +41,9 @@ class DonationTierResource extends Resource
                     ->required()
                     ->default(true)
                     ->label('Activo'),
-                Forms\Components\Select::make('currency_id')
-                    ->relationship('currency', 'iso_code')
-                    ->default(2)
-                    ->required()
-                    ->label('Moneda'),
+                // Bloqueado a BOB (2) por seguridad. El Gateway BNB procesa en Bolivianos.
+                Forms\Components\Hidden::make('currency_id')
+                    ->default(2),
             ]);
     }
 
