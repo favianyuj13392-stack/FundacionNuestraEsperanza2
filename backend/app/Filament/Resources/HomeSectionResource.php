@@ -59,7 +59,15 @@ class HomeSectionResource extends Resource
                         ->constrained(true) // Esto limita el tamaño al contenedor
                         ->size('sm')        // Hace la miniatura más pequeña en el panel
                         ->imageCropAspectRatio('16:9'),
-                ])
+                    Forms\Components\TextInput::make('title')
+                        ->label('Título Principal'),
+                    Forms\Components\TextInput::make('subtitle')
+                        ->label('Subtítulo o Lema'),
+                    Forms\Components\RichEditor::make('content')
+                        ->label('Cuerpo del Texto')
+                        ->columnSpanFull(), // Para que ocupe todo el ancho
+                    
+                ])            
         ]);
     }
 
