@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Awcodes\Curator\Components\Forms\CuratorPicker;
 
 class AllianceResource extends Resource
 {
@@ -23,8 +24,22 @@ class AllianceResource extends Resource
     {
         return $form
             ->schema([
-                //
-            ]);
+                Forms\Components\Card::make()->schema([
+                Forms\Components\TextInput::make('name')
+                    ->label('Nombre de la Organización')
+                    ->required(),
+                CuratorPicker::make('logo')
+                    ->label('Logotipo de la Alianza')
+                    ->required()
+                    ->constrained(true),
+                Forms\Components\TextInput::make('url')
+                    ->label('Enlace Web (URL)')
+                    ->url(),
+                Forms\Components\Toggle::make('is_active')
+                    ->label('Alianza Activa')
+                    ->default(true),
+            ])
+        ]);
     }
 
     public static function table(Table $table): Table
