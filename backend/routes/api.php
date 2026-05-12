@@ -16,6 +16,8 @@ use App\Models\NavLink;
 use App\Models\Stat;
 use App\Models\HomeSection;
 use App\Models\Alliance;
+use App\Models\Advertisement;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -171,6 +173,19 @@ Route::get('/alliances', function () {
                 'logo_url' => $alliance->logo ? asset('storage/' . $alliance->media?->path) : asset('images/default-logo.png'),
             ];
         });
+});
+// 11. ENPOINT ADVERTISEMENTS
+Route::get('/advertisements', function () {
+    return Advertisement::where('is_active', true)
+        ->where(function ($query) {
+            $query->whereNull('starts_at')
+                  ->orWhere('starts_at', '<=', now());
+        })
+        ->where(function ($query) {
+            $query->whereNull('ends_at')
+                  ->orWhere('ends_at', '>=', now());
+        })
+        ->get();
 });
 /*
 |--------------------------------------------------------------------------

@@ -80,8 +80,8 @@ class AdvertisementResource extends Resource
                     ->label('Imagen')
                     ->size(40),
 
-                TextColumn::make('title')
-                    ->label('Título')
+                Tables\Columns\TextColumn::make('title')
+                    ->label('Título del Anuncio')
                     ->searchable()
                     ->sortable(),
 

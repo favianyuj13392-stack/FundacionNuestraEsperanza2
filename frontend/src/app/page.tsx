@@ -13,6 +13,7 @@ import Subscribe from "@/components/Suscribe";
 import Alliances from "@/components/Alliances";
 import Footer from "@/components/Footer";
 import DonationModal from '@/components/DonationModal';
+import Advertisements from '@/components/Advertisement';
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,6 +54,8 @@ export default function HomePage() {
       {sections.subscribe !== false && <Subscribe />}
       
       {sections.alliances !== false && <Alliances />}
+
+      {sections.advertisements !== false && <Advertisements />}
       
       <Footer onOpenDonationModal={openModal} />
 
