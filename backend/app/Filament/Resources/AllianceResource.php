@@ -17,7 +17,7 @@ use Awcodes\Curator\Components\Forms\CuratorPicker;
 class AllianceResource extends Resource
 {
     protected static ?string $model = Alliance::class;
-
+    protected static ?string $navigationGroup = 'Web Content';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

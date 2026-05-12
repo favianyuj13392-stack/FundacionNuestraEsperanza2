@@ -21,75 +21,94 @@ use Awcodes\Curator\Components\Forms\CuratorPicker;
 class HomeSectionResource extends Resource
 {
     protected static ?string $model = HomeSection::class;
-    protected static ?string $navigationGroup = 'Sección';
+    protected static ?string $navigationGroup = 'Section';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
         return $form
-        ->schema([
-            Forms\Components\Section::make('Identificación de la Sección')
-                ->schema([
-                    Forms\Components\TextInput::make('identifier')
-                        ->label('Identificador Técnico (identifier)')
-                        ->helperText('Debe coincidir con el nombre en el código (ej: "hero", "stats")')
-                        ->required()
-                        ->unique(table: 'home_sections', column: 'identifier', ignoreRecord: true)
-                        ->disabled(fn ($record) => $record !== null) 
-                        ->dehydrated(), 
+            ->schema([
+                // BLOQUE 1: Identificación y Estado
+                Forms\Components\Section::make('Configuración de Estructura')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('identifier')
+                            ->label('ID Técnico')
+                            ->helperText('No cambiar, vincula con el código React.')
+                            ->required()
+                            ->disabled(fn ($record) => $record !== null)
+                            ->dehydrated(),
+                        
+                        Forms\Components\Select::make('order')
+                            ->label('Orden de Aparición')
+                            ->options(array_combine(range(1, 20), range(1, 20)))
+                            ->default(fn () => \App\Models\HomeSection::max('order') + 1)
+                            ->required(),
 
-                    Forms\Components\TextInput::make('name')
-                        ->label('Nombre de la Sección (Para el Admin)')
-                        ->required(),
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('¿Sección Activa?')
+                            ->default(true)
+                            ->columnSpanFull(),
+                    ]),
 
-                    Forms\Components\Toggle::make('is_active')
-                        ->label('¿Sección Visible?')
-                        ->default(true)
-                        ->onColor('success'),
+                // BLOQUE 2: Contenido Visual (RF-05)
+                Forms\Components\Section::make('Contenido de la Sección')
+                    ->description('Personaliza el texto y la imagen que se verá en la web.')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nombre Interno (Admin)')
+                            ->required(),
 
-                    Forms\Components\Select::make('order')
-                        ->label('Posición en la página')
-                        ->options(array_combine(range(1, 20), range(1, 20))) // Genera opciones del 1 al 20
-                        ->default(fn () => \App\Models\HomeSection::max('order') + 1) // Sugiere el siguiente
-                        ->required(),
-                    CuratorPicker::make('image')
-                        ->label('Imagen de la Sección')
-                        ->buttonLabel('Seleccionar de la Biblioteca')
-                        ->directory('home-sections') // RF-05: Carpeta organizada
-                        ->constrained(true) // Esto limita el tamaño al contenedor
-                        ->size('sm')        // Hace la miniatura más pequeña en el panel
-                        ->imageCropAspectRatio('16:9'),
-                    Forms\Components\TextInput::make('title')
-                        ->label('Título Principal'),
-                    Forms\Components\TextInput::make('subtitle')
-                        ->label('Subtítulo o Lema'),
-                    Forms\Components\RichEditor::make('content')
-                        ->label('Cuerpo del Texto')
-                        ->columnSpanFull(), // Para que ocupe todo el ancho
-                    
-                ])            
-        ]);
+                        Forms\Components\TextInput::make('title')
+                            ->label('Título en Pantalla'),
+
+                        Forms\Components\RichEditor::make('content')
+                            ->label('Descripción / Texto'),
+
+                        CuratorPicker::make('image')
+                            ->label('Imagen Principal')
+                            ->buttonLabel('Abrir Biblioteca de Medios')
+                            ->size('sm')
+                            ->constrained(true),
+                    ]),
+
+                // BLOQUE 3: SEO (RF-06)
+                Forms\Components\Section::make('Optimización SEO')
+                    ->description('Configura cómo aparece esta sección en Google.')
+                    ->icon('heroicon-o-magnifying-glass')
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
+                        Forms\Components\TextInput::make('meta_title')
+                            ->label('Meta Título')
+                            ->placeholder('Ej: Fundación Esperanza | Programa Alimentario'),
+                        
+                        Forms\Components\Textarea::make('meta_description')
+                            ->label('Meta Descripción')
+                            ->rows(3),
+                    ]),
+            ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table->columns([
-            TextColumn::make('name')
-                ->label('Sección de Inicio'),
-            
-            // ¡Magia! ToggleColumn permite prender y apagar directo desde la tabla
-            ToggleColumn::make('is_active')
-                ->label('Visible'),
-        ])
-        ->actions([]) // Puedes quitar EditAction porque el ToggleColumn ya hace el trabajo
-        ->bulkActions([]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
+        return $table
+            ->columns([
+                TextColumn::make('order')
+                    ->label('#')
+                    ->sortable(),
+                TextColumn::make('name')
+                    ->label('Section')
+                    ->searchable(),
+                ToggleColumn::make('is_active')
+                    ->label('Is Active'),
+            ])
+            ->defaultSort('order', 'asc')
+            ->filters([])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([]);
     }
 
     public static function getPages(): array

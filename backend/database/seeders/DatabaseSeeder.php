@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             NavLinksSeeder::class,
             StatSeeder::class,
             HomeSectionSeeder::class,
+            AllianceSeeder::class,
             DataImportSeeder::class,
             
         ]);

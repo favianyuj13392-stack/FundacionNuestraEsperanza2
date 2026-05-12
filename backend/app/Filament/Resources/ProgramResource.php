@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class ProgramResource extends Resource
 {
     protected static ?string $model = Program::class;
-    protected static ?string $navigationGroup = 'Contenido Web';
+    protected static ?string $navigationGroup = 'Web Content';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

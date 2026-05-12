@@ -17,7 +17,7 @@ use Filament\Tables\Columns\ToggleColumn;
 class ContactMessageResource extends Resource
 {
     protected static ?string $model = ContactMessage::class;
-    protected static ?string $navigationGroup = 'Interacción';
+    protected static ?string $navigationGroup = 'Interaction';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class NavLinkResource extends Resource
 {
-    protected static ?string $navigationGroup = 'Navegación';
-    protected static ?string $label = 'Links del Menú';
+    protected static ?string $navigationGroup = 'Navegation';
+    protected static ?string $label = 'Menu Links';
 
     public static function form(Form $form): Form
     {

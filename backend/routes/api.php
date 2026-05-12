@@ -15,6 +15,7 @@ use App\Models\Setting;
 use App\Models\NavLink;
 use App\Models\Stat;
 use App\Models\HomeSection;
+use App\Models\Alliance;
 
 /*
 |--------------------------------------------------------------------------
@@ -155,6 +156,21 @@ Route::get('/stats', function () {
 // 9. ENPOINT PARA HOME
 Route::get('/home-sections', function () {
     return HomeSection::pluck('is_active', 'identifier');
+});
+// 10. ENDPOINT PARA ALLIANCES
+Route::get('/alliances', function () {
+    return Alliance::where('is_active', true)
+        ->orderBy('sort_order', 'asc')
+        ->get()
+        ->map(function($alliance) {
+            return [
+                'id' => $alliance->id,
+                'name' => $alliance->name,
+                'url' => $alliance->url,
+                // Si usas Curator para el logo, esto obtiene la URL real
+                'logo_url' => $alliance->logo ? asset('storage/' . $alliance->media?->path) : asset('images/default-logo.png'),
+            ];
+        });
 });
 /*
 |--------------------------------------------------------------------------

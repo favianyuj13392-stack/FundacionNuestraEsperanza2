@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SettingResource extends Resource
 {
-    protected static ?string $navigationGroup = 'Identidad y Redes';
-    protected static ?string $navigationLabel = 'Configuración General';
+    protected static ?string $navigationGroup = 'Identity & Social';
+    protected static ?string $navigationLabel = 'General Settings';
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     public static function form(Form $form): Form
