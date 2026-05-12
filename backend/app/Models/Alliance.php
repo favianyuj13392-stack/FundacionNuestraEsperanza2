@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Alliance extends Model
 {
+    public $timestamps = false;
     // Permitimos la carga masiva de estos campos
     protected $fillable = [
         'name',

@@ -46,18 +46,27 @@ class AllianceResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Order')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Organization')
+                    ->searchable(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
+                // Mostramos una miniatura del logo si existe
+                Tables\Columns\TextColumn::make('url')
+                    ->label('URL')
+                    ->limit(30),
             ])
-            ->filters([
-                //
-            ])
+            ->defaultSort('sort_order', 'asc')
+            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 
