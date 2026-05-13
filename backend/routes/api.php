@@ -157,7 +157,9 @@ Route::get('/stats', function () {
 });
 // 9. ENPOINT PARA HOME
 Route::get('/home-sections', function () {
-    return HomeSection::pluck('is_active', 'identifier');
+    return App\Models\HomeSection::where('is_active', true)
+        ->orderBy('order', 'asc')
+        ->get();
 });
 // 10. ENDPOINT PARA ALLIANCES
 Route::get('/alliances', function () {

@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Awcodes\Curator\Components\Forms\CuratorPicker;
+use Awcodes\Curator\Components\Tables\CuratorColumn;
 
 class AllianceResource extends Resource
 {
@@ -26,17 +27,17 @@ class AllianceResource extends Resource
             ->schema([
                 Forms\Components\Card::make()->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Nombre de la Organización')
+                    ->label('Alliance Name')
                     ->required(),
                 CuratorPicker::make('logo')
-                    ->label('Logotipo de la Alianza')
+                    ->label('Logo')
                     ->required()
                     ->constrained(true),
                 Forms\Components\TextInput::make('url')
-                    ->label('Enlace Web (URL)')
+                    ->label('URL')
                     ->url(),
                 Forms\Components\Toggle::make('is_active')
-                    ->label('Alianza Activa')
+                    ->label('Active')
                     ->default(true),
             ])
         ]);
@@ -56,6 +57,9 @@ class AllianceResource extends Resource
                     ->label('Active')
                     ->boolean(),
                 // Mostramos una miniatura del logo si existe
+                CuratorColumn::make('logo')
+                    ->label('Image')
+                    ->size(60),
                 Tables\Columns\TextColumn::make('url')
                     ->label('URL')
                     ->limit(30),

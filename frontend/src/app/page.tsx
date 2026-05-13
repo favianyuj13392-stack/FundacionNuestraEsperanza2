@@ -15,50 +15,69 @@ import Footer from "@/components/Footer";
 import DonationModal from '@/components/DonationModal';
 import Advertisements from '@/components/Advertisement';
 
+// Mapa de componentes: Conecta el 'identifier' de la DB con el Componente de React
+const COMPONENT_MAP: { [key: string]: React.ComponentType<any> } = {
+  'hero': Hero,
+  'stats': Stats,
+  'about_us': AboutUs,
+  'programs': Programs,
+  'how_to_help': HowToHelp,
+  'testimonials': Testimonials,
+  'news': News,
+  'contact': Contact,
+  'subscribe': Subscribe,
+  'alliances': Alliances,
+  'advertisements': Advertisements, 
+};
+
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [sections, setSections] = useState<any>({}); // <-- Estado para guardar qué secciones están activas
+  const [sections, setSections] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  // <-- Llamada a la API para traer los Toggles
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/home-sections')
       .then(res => res.json())
-      .then(data => setSections(data))
-      .catch(err => console.error("Error cargando configuración de secciones:", err));
+      .then(data => {
+        // Asumiendo que la API devuelve un array de objetos con {identifier, is_active}
+        setSections(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error cargando secciones:", err);
+        setLoading(false);
+      });
   }, []);
 
   return (
-    <main>
-      {/* El Navbar y Footer no se ocultan, siempre son fijos */}
+    <main className="min-h-screen bg-white">
       <Navbar onOpenDonationModal={openModal} />
       
-      {sections.hero !== false && <Hero onOpenDonationModal={openModal} />}
-      
-      {sections.stats !== false && <Stats />}
-      
-      {sections.about_us !== false && <AboutUs />}
-      
-      {sections.programs !== false && <Programs />}
-      
-      {sections.how_to_help !== false && <HowToHelp onOpenDonationModal={openModal} />}
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rosa-principal"></div>
+        </div>
+      ) : (
+        sections.map((section) => {
+          const Component = COMPONENT_MAP[section.identifier];
+          
+          // Solo renderiza si el componente existe y la sección está activa
+          if (!Component || section.is_active === false) return null;
 
-      {sections.testimonials !== false && <Testimonials />}
-      
-      {sections.news !== false && <News />}
-      
-      {sections.contact !== false && <Contact />}
-      
-      {sections.subscribe !== false && <Subscribe />}
-      
-      {sections.alliances !== false && <Alliances />}
+          return (
+            <Component 
+              key={section.id} 
+              data={section} // Le pasamos los datos de la DB por si el componente los necesita
+              onOpenDonationModal={openModal} 
+            />
+          );
+        })
+      )}
 
-      {sections.advertisements !== false && <Advertisements />}
-      
-      <Footer onOpenDonationModal={openModal} />
-
+      <Footer />
       <DonationModal isOpen={isModalOpen} onClose={closeModal} />
     </main>
   );

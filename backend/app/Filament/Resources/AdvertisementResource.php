@@ -13,9 +13,12 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Awcodes\Curator\Components\Forms\CuratorPicker;
+use Awcodes\Curator\Components\Tables\CuratorColumn;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Section;
 use Illuminate\Support\Str;
@@ -34,7 +37,7 @@ class AdvertisementResource extends Resource
                     ->columns(2)
                     ->schema([
                         TextInput::make('title')
-                            ->label('Título del Anuncio')
+                            ->label('Title')
                             ->required()
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (string $operation, $state, $set) => 
@@ -46,12 +49,12 @@ class AdvertisementResource extends Resource
                             ->required(),
 
                         CuratorPicker::make('image')
-                            ->label('Imagen del Anuncio/Banner')
+                            ->label('Images')
                             ->columnSpanFull()
                             ->directory('advertisements'),
 
                         RichEditor::make('content')
-                            ->label('Cuerpo del Anuncio')
+                            ->label('Text')
                             ->required()
                             ->columnSpanFull(),
                     ]),
@@ -77,11 +80,11 @@ class AdvertisementResource extends Resource
             ->columns([
                 // RF-05: Mostrar la miniatura de la imagen desde Curator
                 CuratorColumn::make('image')
-                    ->label('Imagen')
+                    ->label('Image')
                     ->size(40),
 
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Título del Anuncio')
+                    ->label('Title')
                     ->searchable()
                     ->sortable(),
 

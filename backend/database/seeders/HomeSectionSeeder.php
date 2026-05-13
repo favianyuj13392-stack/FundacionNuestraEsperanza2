@@ -20,6 +20,7 @@ class HomeSectionSeeder extends Seeder
             ['identifier' => 'contact', 'name' => 'Sección de Contacto', 'order' => 8],
             ['identifier' => 'subscribe', 'name' => 'Suscripción Newsletter', 'order' => 9],
             ['identifier' => 'alliances', 'name' => 'Nuestras Alianzas', 'order' => 10],
+            ['identifier' => 'advertisements', 'name' => 'Anuncios y Novedades', 'order' => 11],
         ];
 
         foreach ($sections as $section) {
