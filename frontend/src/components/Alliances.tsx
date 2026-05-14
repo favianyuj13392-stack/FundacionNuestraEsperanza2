@@ -15,7 +15,7 @@ const Alliances = () => {
   return (
     <section className="bg-white py-16">
       <div className="container mx-auto px-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-black mb-3 text-center">NUESTROS ALIADOS</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-black mb-3 text-center font-title">NUESTROS ALIADOS</h2>
         <div className="flex justify-center mb-10">
           <div className="bg-pink-500 w-20 h-2"></div>
         </div>
