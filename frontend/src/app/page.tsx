@@ -27,7 +27,6 @@ const COMPONENT_MAP: { [key: string]: React.ComponentType<any> } = {
   'contact': Contact,
   'subscribe': Subscribe,
   'alliances': Alliances,
-  'advertisements': Advertisements, 
 };
 
 export default function HomePage() {
@@ -54,6 +53,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-white">
+      <Advertisements />
       <Navbar onOpenDonationModal={openModal} />
       
       {loading ? (

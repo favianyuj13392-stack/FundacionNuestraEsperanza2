@@ -53,14 +53,14 @@ class NavLinkResource extends Resource
                         'warning' => 'footer',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'header' => 'Solo Header',
-                        'footer' => 'Solo Footer',
-                        'both' => 'Ambos',
+                        'header' => 'Header',
+                        'footer' => 'Footer',
+                        'both' => 'Both',
                         default => $state,
                     }),
 
                 Tables\Columns\TextColumn::make('order')
-                    ->label('Orden')
+                    ->label('Order')
                     ->sortable(),
             ])
             ->defaultSort('order', 'asc') // Ordena por defecto basándose en la columna order

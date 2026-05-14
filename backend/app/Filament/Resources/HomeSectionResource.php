@@ -40,7 +40,7 @@ class HomeSectionResource extends Resource
                             ->dehydrated(),
                         
                         Forms\Components\Select::make('order')
-                            ->label('Orden de Aparición')
+                            ->label('Order')
                             ->options(array_combine(range(1, 20), range(1, 20)))
                             ->default(fn () => \App\Models\HomeSection::max('order') + 1)
                             ->required(),

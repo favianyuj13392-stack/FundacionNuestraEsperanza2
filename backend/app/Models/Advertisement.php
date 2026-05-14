@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Advertisement extends Model
 {
     use HasFactory;
-
+    protected $appends = ['image_url'];
     protected $fillable = [
         'title',
         'slug',
@@ -26,4 +26,9 @@ class Advertisement extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
     ];
+    public function getImageUrlAttribute() {
+        
+        $media = \Awcodes\Curator\Models\Media::find($this->image);
+        return $media ? $media->url : null;
+    }
 }

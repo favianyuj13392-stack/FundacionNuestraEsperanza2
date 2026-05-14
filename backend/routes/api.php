@@ -18,6 +18,7 @@ use App\Models\HomeSection;
 use App\Models\Alliance;
 use App\Models\Advertisement;
 use Illuminate\Support\Facades\Route;
+use Carbon\Carbon;
 
 /*
 |--------------------------------------------------------------------------
@@ -177,15 +178,16 @@ Route::get('/alliances', function () {
         });
 });
 // 11. ENPOINT ADVERTISEMENTS
-Route::get('/advertisements', function () {
-    return Advertisement::where('is_active', true)
-        ->where(function ($query) {
+Route::get('advertisements', function () {
+    $now = Carbon::now();
+    return \App\Models\Advertisement::where('is_active', true)
+        ->where(function ($query) use ($now) {
             $query->whereNull('starts_at')
-                  ->orWhere('starts_at', '<=', now());
+                  ->orWhere('starts_at', '<=', $now);
         })
-        ->where(function ($query) {
+        ->where(function ($query) use ($now) {
             $query->whereNull('ends_at')
-                  ->orWhere('ends_at', '>=', now());
+                  ->orWhere('ends_at', '>=', $now);
         })
         ->get();
 });
