@@ -36,6 +36,8 @@ class NavLinkResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->reorderable('order') 
+            ->defaultSort('order', 'asc')
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->label('Título del Enlace')
@@ -63,7 +65,6 @@ class NavLinkResource extends Resource
                     ->label('Order')
                     ->sortable(),
             ])
-            ->defaultSort('order', 'asc') // Ordena por defecto basándose en la columna order
             ->filters([
                 //
             ])

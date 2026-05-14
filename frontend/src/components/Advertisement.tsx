@@ -40,44 +40,44 @@ const Advertisements = () => {
   const currentAd = ads[currentIndex];
 
   return (
-    <>
-      {/* BANNER TIPO CARRUSEL (ARRIBA DEL NAVBAR) */}
-      <div className="w-full bg-gradient-to-r from-rosa-principal to-pink-500 text-white border-b border-white/10 relative overflow-hidden">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center justify-between min-h-[40px] gap-4">
-            
-            {/* Controles si hay más de uno */}
-            {ads.length > 1 && (
-              <div className="flex gap-1">
-                <button onClick={prevAd} className="hover:bg-white/20 p-1 rounded-full transition"><ChevronLeft size={16}/></button>
-                <button onClick={nextAd} className="hover:bg-white/20 p-1 rounded-full transition"><ChevronRight size={16}/></button>
+    <section 
+      id="anuncio"  
+      className="sticky top-[80px] z-40 bg-gradient-to-r from-amber-50 to-orange-100 border-b border-orange-200 py-2 shadow-sm"
+    >
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between">
+          <div 
+            className="flex items-center gap-4 cursor-pointer flex-1"
+            onClick={() => setSelectedAd(ads[currentIndex])}
+          >
+            {/* Miniatura llamativa */}
+            {ads[currentIndex].image_url && (
+              <div className="hidden sm:block h-10 w-10 rounded-full overflow-hidden border-2 border-rosa-principal">
+                <img 
+                  src={ads[currentIndex].image_url} 
+                  alt="" 
+                  className="h-full w-full object-cover"
+                />
               </div>
             )}
-
-            {/* Contenido Central: Compacto */}
-            <div className="flex-1 flex items-center justify-center gap-3 overflow-hidden text-center">
-              <span className="hidden sm:inline-block bg-white/20 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter">
-                Nuevo
-              </span>
-              <p className="text-sm md:text-base font-medium truncate animate-fade-in">
-                {currentAd.title}
-              </p>
-              <button 
-                onClick={() => setSelectedAd(currentAd)}
-                className="text-xs font-bold underline hover:text-white/80 transition-all whitespace-nowrap"
-              >
-                Ver detalle
-              </button>
+            <div>
+              <span className="text-[10px] font-bold text-rosa-principal uppercase tracking-wider block">Novedad</span>
+              <h3 className="text-sm md:text-base font-bold text-gray-800 line-clamp-1">
+                {ads[currentIndex].title}
+              </h3>
             </div>
+          </div>
 
-            {/* Botón Cerrar */}
-            <button onClick={() => setIsVisible(false)} className="p-1 hover:bg-white/10 rounded-full">
-              <X size={18} />
+          <div className="flex items-center gap-2">
+            <button onClick={prevAd} className="p-1 hover:bg-white rounded-full transition"><ChevronLeft size={18}/></button>
+            <button onClick={nextAd} className="p-1 hover:bg-white rounded-full transition"><ChevronRight size={18}/></button>
+            <button onClick={() => setIsVisible(false)} className="ml-2 p-1 text-gray-400 hover:text-gray-600">
+              <X size={18}/>
             </button>
           </div>
         </div>
       </div>
-
+      
       {/* POP-UP / MODAL (Detalles Completos) */}
       {selectedAd && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
@@ -124,7 +124,7 @@ const Advertisements = () => {
           <div className="absolute inset-0 -z-10" onClick={() => setSelectedAd(null)}></div>
         </div>
       )}
-    </>
+    </section>
   );
 };
 

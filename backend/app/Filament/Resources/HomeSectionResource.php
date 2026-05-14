@@ -93,6 +93,7 @@ class HomeSectionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->reorderable('order')
             ->columns([
                 TextColumn::make('order')
                     ->label('#')
