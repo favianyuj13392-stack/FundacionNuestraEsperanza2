@@ -40,15 +40,15 @@ class NavLinkResource extends Resource
             ->defaultSort('order', 'asc')
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Título del Enlace')
+                    ->label('Title')
                     ->searchable(),
                 
                 Tables\Columns\TextColumn::make('url')
-                    ->label('Ruta / URL')
+                    ->label('URL')
                     ->searchable(),
                 
                 Tables\Columns\BadgeColumn::make('location')
-                    ->label('Ubicación')
+                    ->label('Location')
                     ->colors([
                         'primary' => 'both',
                         'success' => 'header',

@@ -42,7 +42,8 @@ const Advertisements = () => {
   return (
     <section 
       id="anuncio"  
-      className="sticky top-[80px] z-40 bg-gradient-to-r from-amber-50 to-orange-100 border-b border-orange-200 py-2 shadow-sm"
+      className="sticky top-[80px] z-40 bg-rose-100 border-b border-rose-200 py-2 shadow-sm"
+
     >
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between">
