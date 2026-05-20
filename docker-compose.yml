@@ -73,7 +73,7 @@ services:
       - "traefik.http.services.fundacion-frontend.loadbalancer.server.port=3000"
       
       # Redirección de .com a .cloud
-      - "traefik.http.routers.fundacion-com-redirect.rule=Host(`fundacion-nuestra-esperanza.com`)"
+      - "traefik.http.routers.fundacion-com-redirect.rule=Host(`fundacion-nuestra-esperanza.com`) || Host(`www.fundacion-nuestra-esperanza.com`)"
       - "traefik.http.routers.fundacion-com-redirect.entrypoints=websecure"
       - "traefik.http.routers.fundacion-com-redirect.tls.certresolver=letsencrypt"
       - "traefik.http.routers.fundacion-com-redirect.middlewares=redirect-to-cloud"
