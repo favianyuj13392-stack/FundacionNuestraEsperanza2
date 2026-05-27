@@ -47,7 +47,9 @@ const Contact = () => {
   };
 
   return (
-    <section id="contacto" className="bg-verde-lima-claro py-16">
+    <section id="contacto" className="relative py-16 bg-gradient-to-br from-verde-lima-claro via-white to-azul-marino/10 overflow-hidden">
+      <div className="absolute left-0 top-10 h-40 w-40 rounded-full bg-rosa-principal/20 blur-3xl"></div>
+      <div className="absolute right-0 bottom-0 h-72 w-72 rounded-full bg-celeste-fondo/20 blur-3xl"></div>
       <div className="container mx-auto px-6 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-black mb-4 font-title">CONTACTO</h2>
         <div className="flex justify-center mb-8"><div className="bg-rosa-principal w-20 h-2"></div></div>

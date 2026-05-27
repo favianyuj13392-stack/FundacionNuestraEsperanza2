@@ -113,7 +113,9 @@ const TestimonialsSection = () => {
 
   // --- RENDERIZADO ---
   return (
-    <section className="py-16 md:py-20 bg-gray-50">
+    <section className="relative py-16 md:py-20 bg-gradient-to-br from-celeste-claro to-white overflow-hidden">
+      <div className="absolute -left-16 top-16 h-48 w-48 rounded-full bg-rosa-principal/20 blur-3xl"></div>
+      <div className="absolute right-0 top-24 h-64 w-64 rounded-full bg-turquesa-secundario/15 blur-3xl"></div>
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-black mb-2 font-title"> TESTIMONIOS </h2>

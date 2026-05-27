@@ -14,24 +14,45 @@ import Alliances from "@/components/Alliances";
 import Footer from "@/components/Footer";
 import DonationModal from '@/components/DonationModal';
 import Advertisements from '@/components/Advertisement';
+import GenericSection from '@/components/GenericSection';
+
+interface HomeSectionData {
+  id: number;
+  identifier: string;
+  name: string;
+  title?: string;
+  subtitle?: string;
+  content?: string;
+  image?: string | null;
+  is_active?: boolean;
+  order?: number;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+}
+
+interface HomeSectionComponentProps {
+  data: HomeSectionData;
+  onOpenDonationModal: () => void;
+}
 
 // Mapa de componentes: Conecta el 'identifier' de la DB con el Componente de React
-const COMPONENT_MAP: { [key: string]: React.ComponentType<any> } = {
-  'hero': Hero,
-  'stats': Stats,
-  'about_us': AboutUs,
-  'programs': Programs,
-  'how_to_help': HowToHelp,
-  'testimonials': Testimonials,
-  'news': News,
-  'contact': Contact,
-  'subscribe': Subscribe,
-  'alliances': Alliances,
+const COMPONENT_MAP: Record<string, React.ComponentType<HomeSectionComponentProps>> = {
+  'hero': Hero as React.ComponentType<HomeSectionComponentProps>,
+  'stats': Stats as React.ComponentType<HomeSectionComponentProps>,
+  'about_us': AboutUs as React.ComponentType<HomeSectionComponentProps>,
+  'programs': Programs as React.ComponentType<HomeSectionComponentProps>,
+  'how_to_help': HowToHelp as React.ComponentType<HomeSectionComponentProps>,
+  'testimonials': Testimonials as React.ComponentType<HomeSectionComponentProps>,
+  'news': News as React.ComponentType<HomeSectionComponentProps>,
+  'contact': Contact as React.ComponentType<HomeSectionComponentProps>,
+  'subscribe': Subscribe as React.ComponentType<HomeSectionComponentProps>,
+  'alliances': Alliances as React.ComponentType<HomeSectionComponentProps>,
 };
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [sections, setSections] = useState<any[]>([]);
+  const [sections, setSections] = useState<HomeSectionData[]>([]);
   const [loading, setLoading] = useState(true);
 
   const openModal = () => setIsModalOpen(true);
@@ -63,17 +84,21 @@ export default function HomePage() {
         </div>
       ) : (
         sections.map((section) => {
+          if (section.is_active === false) return null;
           const Component = COMPONENT_MAP[section.identifier];
-          
-          // Solo renderiza si el componente existe y la sección está activa
-          if (!Component || section.is_active === false) return null;
+
+          if (Component) {
+            return (
+              <Component 
+                key={section.id} 
+                data={section}
+                onOpenDonationModal={openModal} 
+              />
+            );
+          }
 
           return (
-            <Component 
-              key={section.id} 
-              data={section} // Le pasamos los datos de la DB por si el componente los necesita
-              onOpenDonationModal={openModal} 
-            />
+            <GenericSection key={section.id} data={section} />
           );
         })
       )}
