@@ -70,7 +70,7 @@ class ContactMessageResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\Action::make('reply')
-                    ->label('Responder')
+                    ->label('Reply')
                     ->icon('heroicon-o-envelope')
                     ->url(fn (ContactMessage $record) => "mailto:{$record->email}?subject=Respuesta a su mensaje - Fundación Nuestra Esperanza")
                     ->openUrlInNewTab(),    

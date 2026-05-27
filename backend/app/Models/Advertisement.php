@@ -17,12 +17,14 @@ class Advertisement extends Model
         'image',
         'link_url',
         'is_active',
+        'order',
         'starts_at',
         'ends_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'order' => 'integer',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
     ];

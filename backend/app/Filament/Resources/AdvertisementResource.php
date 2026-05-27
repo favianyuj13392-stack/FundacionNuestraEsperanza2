@@ -57,6 +57,8 @@ class AdvertisementResource extends Resource
                             ->label('Text')
                             ->required()
                             ->columnSpanFull(),
+
+                        TextInput::make('title')->required(),
                     ]),
 
                 Section::make('Configuración y Fechas')
@@ -77,12 +79,16 @@ class AdvertisementResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->reorderable('order') 
+            ->defaultSort('order', 'asc')
             ->columns([
                 // RF-05: Mostrar la miniatura de la imagen desde Curator
                 CuratorColumn::make('image')
                     ->label('Image')
                     ->size(40),
-
+                Tables\Columns\TextColumn::make('order')
+                    ->label('Order')
+                    ->badge(),
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
                     ->searchable()
@@ -90,22 +96,22 @@ class AdvertisementResource extends Resource
 
                 // Toggle directo en la tabla para activar/desactivar rápido
                 ToggleColumn::make('is_active')
-                    ->label('Activo'),
+                    ->label('Active'),
 
                 TextColumn::make('starts_at')
-                    ->label('Inicio')
+                    ->label('Starts At')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('created_at')
-                    ->label('Creado el')
+                    ->label('Created At')
                     ->dateTime('d/m/Y')
                     ->sortable(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Solo activos'),
+                    ->label('Just Active'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

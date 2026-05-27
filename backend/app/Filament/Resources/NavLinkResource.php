@@ -25,9 +25,9 @@ class NavLinkResource extends Resource
             Forms\Components\TextInput::make('url')->required(),
             Forms\Components\Select::make('location')
                 ->options([
-                    'header' => 'Solo Header',
-                    'footer' => 'Solo Footer',
-                    'both' => 'Ambos',
+                    'header' => 'Just Header',
+                    'footer' => 'Just Footer',
+                    'both' => 'Both',
                 ]),
             Forms\Components\TextInput::make('order')->numeric()->default(0),
         ]);

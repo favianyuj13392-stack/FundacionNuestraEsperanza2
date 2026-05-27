@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             StatSeeder::class,
             HomeSectionSeeder::class,
             AllianceSeeder::class,
+            AdvertisementSeeder::class,
             DataImportSeeder::class,
             
         ]);

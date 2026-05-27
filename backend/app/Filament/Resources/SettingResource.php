@@ -35,10 +35,10 @@ class SettingResource extends Resource
                     // Campo de texto: Solo aparece si el tipo NO es imagen
                     // Aquí aparecerá tu link de Facebook, Instagram, etc.
                     Forms\Components\TextInput::make('value')
-                        ->label('Contenido / Enlace')
+                        ->label('Content / Link')
                         ->required()
                         ->visible(fn ($record) => $record && $record->type !== 'image')
-                        ->placeholder('Introduce el link o texto aquí...'),
+                        ->placeholder('Introduce the content or URL here'),
 
                     // Campo de imagen: Solo aparece si el tipo ES imagen (como el logo)
                     Forms\Components\FileUpload::make('value')
@@ -64,7 +64,7 @@ class SettingResource extends Resource
         
 
             Tables\Columns\ImageColumn::make('value')
-                ->label('Imagen / Logo')
+                ->label('Image / Logo')
                 ->disk('public')
                 // Usamos el operador null-safe (?->) por seguridad
                 ->visible(fn ($record) => $record?->type === 'image')
@@ -73,11 +73,11 @@ class SettingResource extends Resource
 
             // Columna de Texto: Solo se activa si el tipo NO es image
             Tables\Columns\TextColumn::make('value_text') 
-                ->label('Contenido / Enlace')
+                ->label('Content / Link')
                 ->state(fn ($record) => $record?->type !== 'image' ? $record->value : null)
                 ->limit(40)
                 ->visible(fn ($record) => $record?->type !== 'image')
-                ->placeholder('Sin valor asignado'), // Maneja el null visualmente
+                ->placeholder('No value assigned'), // Maneja el null visualmente
         ])
         ->actions([
             Tables\Actions\EditAction::make()->label('Editar'),

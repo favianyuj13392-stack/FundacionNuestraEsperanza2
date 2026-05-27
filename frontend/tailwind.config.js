@@ -33,13 +33,19 @@ module.exports = {
         },
         'scale-up': {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        }
+          '100%': { opacity: '1', transform: 'scale(1)' },        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' }        }
       },
       animation: {
         'fade-in-down': 'fade-in-down 0.5s ease-out',
         'fade-in': 'fade-in 0.3s ease-in',
         'scale-up': 'scale-up 0.3s ease-out forwards',
+      },
+      zIndex: {
+        '1000': '1000',
+        '9999': '9999',
       }
     },
   },

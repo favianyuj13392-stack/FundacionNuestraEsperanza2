@@ -34,7 +34,7 @@ class HomeSectionResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('identifier')
                             ->label('ID Técnico')
-                            ->helperText('No cambiar, vincula con el código React.')
+                            ->helperText('Name unique for internal use, e.g. "programs", "about_us".')
                             ->required()
                             ->disabled(fn ($record) => $record !== null)
                             ->dehydrated(),
@@ -46,45 +46,45 @@ class HomeSectionResource extends Resource
                             ->required(),
 
                         Forms\Components\Toggle::make('is_active')
-                            ->label('¿Sección Activa?')
+                            ->label('Is Active')
                             ->default(true)
                             ->columnSpanFull(),
                     ]),
 
                 // BLOQUE 2: Contenido Visual (RF-05)
                 Forms\Components\Section::make('Contenido de la Sección')
-                    ->description('Personaliza el texto y la imagen que se verá en la web.')
+                    ->description('Personalice visual content for this section.')
                     ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->label('Nombre Interno (Admin)')
+                            ->label('Name In Display')
                             ->required(),
 
                         Forms\Components\TextInput::make('title')
-                            ->label('Título en Pantalla'),
+                            ->label('Title'),
 
                         Forms\Components\RichEditor::make('content')
-                            ->label('Descripción / Texto'),
+                            ->label('Content'),
 
                         CuratorPicker::make('image')
-                            ->label('Imagen Principal')
-                            ->buttonLabel('Abrir Biblioteca de Medios')
+                            ->label('Principal Image')
+                            ->buttonLabel('Select Image')
                             ->size('sm')
                             ->constrained(true),
                     ]),
 
                 // BLOQUE 3: SEO (RF-06)
                 Forms\Components\Section::make('Optimización SEO')
-                    ->description('Configura cómo aparece esta sección en Google.')
+                    ->description('Optional SEO settings to improve search engine visibility.')
                     ->icon('heroicon-o-magnifying-glass')
                     ->collapsible()
                     ->collapsed()
                     ->schema([
                         Forms\Components\TextInput::make('meta_title')
-                            ->label('Meta Título')
+                            ->label('Meta Title')
                             ->placeholder('Ej: Fundación Esperanza | Programa Alimentario'),
                         
                         Forms\Components\Textarea::make('meta_description')
-                            ->label('Meta Descripción')
+                            ->label('Meta Description')
                             ->rows(3),
                     ]),
             ]);
@@ -96,7 +96,7 @@ class HomeSectionResource extends Resource
             ->reorderable('order')
             ->columns([
                 TextColumn::make('order')
-                    ->label('#')
+                    ->label('Order')
                     ->sortable(),
                 TextColumn::make('name')
                     ->label('Section')
