@@ -10,7 +10,12 @@ class ProgramsSectionSeeder extends Seeder
     public function run(): void
     {
         $sections = [
-            ['identifier' => 'programs', 'name' => 'Nuestros Programas', 'order' => 1],
+            ['identifier' => 'programs_hero', 'name' => 'Hero de Programas', 'order' => 1],
+            ['identifier' => 'programs_section', 'name' => 'Sección de Programas', 'order' => 2],
+            ['identifier' => 'how_to_help', 'name' => 'Cómo Ayudar', 'order' => 3],
+            ['identifier' => 'alliances', 'name' => 'Alianzas', 'order' => 4],
+            ['identifier' => 'subscribe', 'name' => 'Suscripción Newsletter', 'order' => 5],
+            ['identifier' => 'contact', 'name' => 'Sección de Contacto', 'order' => 6],
         ];
 
         foreach ($sections as $section) {

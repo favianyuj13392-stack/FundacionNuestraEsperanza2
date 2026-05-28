@@ -10,7 +10,9 @@ class NewsSectionSeeder extends Seeder
     public function run(): void
     {
         $sections = [
-            ['identifier' => 'news', 'name' => 'Últimas Noticias', 'order' => 1],
+            ['identifier' => 'news_hero', 'name' => 'Hero de Noticias', 'order' => 1],
+            ['identifier' => 'news_section', 'name' => 'Sección de Noticias', 'order' => 2],
+            ['identifier' => 'alliances', 'name' => 'Alianzas', 'order' => 3],
         ];
 
         foreach ($sections as $section) {

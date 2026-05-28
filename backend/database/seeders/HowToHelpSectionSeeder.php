@@ -16,6 +16,7 @@ class HowToHelpSectionSeeder extends Seeder
             ['identifier' => 'more_ways_to_help', 'name' => 'Más Formas de Ayudar', 'order' => 4],
             ['identifier' => 'social_media_help', 'name' => 'Ayuda en Redes Sociales', 'order' => 5],
             ['identifier' => 'qr_donation_section', 'name' => 'Donación con QR', 'order' => 6],
+            ['identifier' => 'alliances', 'name' => 'Alianzas', 'order' => 7],
         ];
 
         foreach ($sections as $section) {
