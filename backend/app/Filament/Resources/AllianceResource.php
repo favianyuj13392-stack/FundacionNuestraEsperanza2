@@ -36,6 +36,11 @@ class AllianceResource extends Resource
                 Forms\Components\TextInput::make('url')
                     ->label('URL')
                     ->url(),
+                Forms\Components\TextInput::make('sort_order')
+                    ->label('Order')
+                    ->numeric()
+                    ->default(fn () => Alliance::max('sort_order') + 1)
+                    ->required(),
                 Forms\Components\Toggle::make('is_active')
                     ->label('Active')
                     ->default(true),
@@ -46,6 +51,7 @@ class AllianceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->reorderable('sort_order')
             ->columns([
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('Order')

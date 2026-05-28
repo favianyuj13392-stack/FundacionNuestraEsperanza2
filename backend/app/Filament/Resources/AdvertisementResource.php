@@ -58,7 +58,11 @@ class AdvertisementResource extends Resource
                             ->required()
                             ->columnSpanFull(),
 
-                        TextInput::make('title')->required(),
+                        TextInput::make('order')
+                            ->label('Order')
+                            ->numeric()
+                            ->default(fn () => Advertisement::max('order') + 1)
+                            ->required(),
                     ]),
 
                 Section::make('Configuración y Fechas')

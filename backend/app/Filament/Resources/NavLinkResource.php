@@ -29,7 +29,10 @@ class NavLinkResource extends Resource
                     'footer' => 'Just Footer',
                     'both' => 'Both',
                 ]),
-            Forms\Components\TextInput::make('order')->numeric()->default(0),
+            Forms\Components\TextInput::make('order')
+                ->numeric()
+                ->default(fn () => NavLink::max('order') + 1)
+                ->required(),
         ]);
     }
 

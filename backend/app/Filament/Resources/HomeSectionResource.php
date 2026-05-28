@@ -29,20 +29,20 @@ class HomeSectionResource extends Resource
         return $form
             ->schema([
                 // BLOQUE 1: Identificación y Estado
-                Forms\Components\Section::make('Configuración de Estructura')
+                Forms\Components\Section::make('Section Settings')
                     ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('identifier')
-                            ->label('ID Técnico')
+                            ->label('Identifier')
                             ->helperText('Name unique for internal use, e.g. "programs", "about_us".')
                             ->required()
                             ->disabled(fn ($record) => $record !== null)
                             ->dehydrated(),
                         
-                        Forms\Components\Select::make('order')
+                        Forms\Components\TextInput::make('order')
                             ->label('Order')
-                            ->options(array_combine(range(1, 20), range(1, 20)))
-                            ->default(fn () => \App\Models\HomeSection::max('order') + 1)
+                            ->numeric()
+                            ->default(fn () => HomeSection::max('order') + 1)
                             ->required(),
 
                         Forms\Components\Toggle::make('is_active')
@@ -52,7 +52,7 @@ class HomeSectionResource extends Resource
                     ]),
 
                 // BLOQUE 2: Contenido Visual (RF-05)
-                Forms\Components\Section::make('Contenido de la Sección')
+                Forms\Components\Section::make('Section Content')
                     ->description('Personalice visual content for this section.')
                     ->schema([
                         Forms\Components\TextInput::make('name')
@@ -73,7 +73,7 @@ class HomeSectionResource extends Resource
                     ]),
 
                 // BLOQUE 3: SEO (RF-06)
-                Forms\Components\Section::make('Optimización SEO')
+                Forms\Components\Section::make('SEO Optimization')
                     ->description('Optional SEO settings to improve search engine visibility.')
                     ->icon('heroicon-o-magnifying-glass')
                     ->collapsible()
