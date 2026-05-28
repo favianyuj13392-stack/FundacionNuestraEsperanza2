@@ -1,0 +1,70 @@
+"use client";
+
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+
+export interface HomeSectionStatus {
+  identifier: string;
+  is_active: boolean;
+}
+
+interface HomeSectionsContextValue {
+  sections: HomeSectionStatus[];
+  loading: boolean;
+  error: string | null;
+  isSectionActive: (identifier: string) => boolean;
+}
+
+const HomeSectionsContext = createContext<HomeSectionsContextValue | undefined>(undefined);
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:8000';
+
+export function HomeSectionsProvider({ children }: { children: ReactNode }) {
+  const [sections, setSections] = useState<HomeSectionStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadSections = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/section-statuses`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const normalized = Array.isArray(data)
+          ? data.map((item: any) => ({
+              identifier: item.identifier,
+              is_active: Boolean(item.is_active),
+            }))
+          : [];
+
+        setSections(normalized);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error loading home sections');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSections();
+  }, []);
+
+  const isSectionActive = (identifier: string) => {
+    return sections.some((section) => section.identifier === identifier && section.is_active);
+  };
+
+  return (
+    <HomeSectionsContext.Provider value={{ sections, loading, error, isSectionActive }}>
+      {children}
+    </HomeSectionsContext.Provider>
+  );
+}
+
+export function useHomeSectionsContext() {
+  const context = useContext(HomeSectionsContext);
+  if (!context) {
+    throw new Error('useHomeSectionsContext must be used within HomeSectionsProvider');
+  }
+  return context;
+}

@@ -4,6 +4,7 @@ import {M_PLUS_Rounded_1c, Original_Surfer,Gluten} from "next/font/google";
 import AOSInitializer from "@/components/AOSInitializer";
 import ChatbaseBot from "@/components/Chatbasebot";
 import { AuthProvider } from '@/context/AuthContext';
+import { HomeSectionsProvider } from '@/context/HomeSectionsContext';
 
 const mPlus=M_PLUS_Rounded_1c({
   subsets:['latin'],
@@ -37,8 +38,10 @@ export default function RootLayout({
     }>
       <body suppressHydrationWarning={true}>
         <AuthProvider>
+          <HomeSectionsProvider>
           <AOSInitializer />
           {children}
+          </HomeSectionsProvider>
           <ChatbaseBot />
         </AuthProvider>
       </body>

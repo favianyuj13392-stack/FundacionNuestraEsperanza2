@@ -15,6 +15,11 @@ use App\Models\Setting;
 use App\Models\NavLink;
 use App\Models\Stat;
 use App\Models\HomeSection;
+use App\Models\AboutUsSection;
+use App\Models\ProgramsSection;
+use App\Models\TestimonialsSection;
+use App\Models\NewsSection;
+use App\Models\HowToHelpSection;
 use App\Models\Alliance;
 use App\Models\Advertisement;
 use Illuminate\Support\Facades\Route;
@@ -178,6 +183,93 @@ Route::get('/home-sections', function () {
             ];
         });
 });
+
+Route::get('/section-statuses', function () {
+    $homeSectionStatuses = HomeSection::select('identifier', 'is_active')->get()
+        ->map(fn ($section) => [
+            'identifier' => $section->identifier,
+            'is_active' => $section->is_active,
+        ]);
+
+    $sectionModels = [
+        AboutUsSection::class,
+        ProgramsSection::class,
+        TestimonialsSection::class,
+        NewsSection::class,
+        HowToHelpSection::class,
+    ];
+
+    $pageSectionStatuses = collect($sectionModels)
+        ->flatMap(fn ($model) => $model::select('identifier', 'is_active')->get())
+        ->map(fn ($section) => [
+            'identifier' => $section->identifier,
+            'is_active' => $section->is_active,
+        ]);
+
+    return $homeSectionStatuses
+        ->concat($pageSectionStatuses)
+        ->keyBy('identifier')
+        ->values();
+});
+
+Route::get('/how-to-help-sections', function () {
+    return HowToHelpSection::where('is_active', true)
+        ->orderBy('order', 'asc')
+        ->get()
+        ->map(function ($section) {
+            return [
+                'id' => $section->id,
+                'identifier' => $section->identifier,
+                'name' => $section->name,
+                'title' => $section->title,
+                'subtitle' => $section->subtitle,
+                'content' => $section->content,
+                'image' => $section->image_url,
+                'is_active' => $section->is_active,
+                'order' => $section->order,
+                'meta_title' => $section->meta_title,
+                'meta_description' => $section->meta_description,
+                'meta_keywords' => $section->meta_keywords,
+            ];
+        });
+});
+
+Route::get('/sections/{identifier}', function (string $identifier) {
+    $sectionMap = [
+        'about_us' => AboutUsSection::class,
+        'programs' => ProgramsSection::class,
+        'testimonials' => TestimonialsSection::class,
+        'news' => NewsSection::class,
+        'how_to_help' => HowToHelpSection::class,
+    ];
+
+    if (! array_key_exists($identifier, $sectionMap)) {
+        return response()->json(['message' => 'Section not found.'], 404);
+    }
+
+    $model = $sectionMap[$identifier];
+    $section = $model::where('identifier', $identifier)->first();
+
+    if (! $section) {
+        return response()->json(['message' => 'Section not found.'], 404);
+    }
+
+    return [
+        'id' => $section->id,
+        'identifier' => $section->identifier,
+        'name' => $section->name,
+        'title' => $section->title,
+        'subtitle' => $section->subtitle,
+        'content' => $section->content,
+        'image' => $section->image_url,
+        'is_active' => $section->is_active,
+        'order' => $section->order,
+        'meta_title' => $section->meta_title,
+        'meta_description' => $section->meta_description,
+        'meta_keywords' => $section->meta_keywords,
+    ];
+});
+
 // 10. ENDPOINT PARA ALLIANCES
 Route::get('/alliances', function () {
     return Alliance::where('is_active', true)
@@ -206,6 +298,28 @@ Route::get('advertisements', function () {
                   ->orWhere('ends_at', '>=', $now);
         })
         ->get();
+});
+//12. ENDPOINT PARA ABOUT US
+Route::get('/about-us', function () {
+    return AboutUsSection::where('is_active', true)
+        ->orderBy('order', 'asc')
+        ->get()
+        ->map(function ($section) {
+            return [
+                'id' => $section->id,
+                'identifier' => $section->identifier,
+                'name' => $section->name,
+                'title' => $section->title,
+                'subtitle' => $section->subtitle,
+                'content' => $section->content,
+                'image' => $section->image_url,
+                'is_active' => $section->is_active,
+                'order' => $section->order,
+                'meta_title' => $section->meta_title,
+                'meta_description' => $section->meta_description,
+                'meta_keywords' => $section->meta_keywords,
+            ];
+        });
 });
 /*
 |--------------------------------------------------------------------------
