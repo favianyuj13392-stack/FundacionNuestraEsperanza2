@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\AdjustsOrder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Advertisement extends Model
 {
     use HasFactory;
+    use AdjustsOrder;
+
     protected $appends = ['image_url'];
     protected $fillable = [
         'title',
@@ -28,6 +31,7 @@ class Advertisement extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
     ];
+
     public function getImageUrlAttribute() {
         
         $media = \Awcodes\Curator\Models\Media::find($this->image);

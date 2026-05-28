@@ -1,13 +1,16 @@
 <?php
 namespace App\Models;
 
+use App\Models\Traits\AdjustsOrder;
 use Illuminate\Database\Eloquent\Model;
 use Awcodes\Curator\Models\Media;
 
 class HomeSection extends Model
 {
+    use AdjustsOrder;
+
     protected $fillable = ['name', 'identifier', 'is_active', 'order', 'image', 'title', 'subtitle', 'content', 'meta_title', 'meta_description', 'meta_keywords'];
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'order' => 'integer'];
     protected $appends = ['image_url'];
 
     public function getImageUrlAttribute(): ?string

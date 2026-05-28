@@ -2,12 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Traits\AdjustsOrder;
 use Illuminate\Database\Eloquent\Model;
 use Awcodes\Curator\Models\Media;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Alliance extends Model
 {
+    use AdjustsOrder;
+
+    protected static function getOrderColumn(): string
+    {
+        return 'sort_order';
+    }
+
     public $timestamps = false;
     // Permitimos la carga masiva de estos campos
     protected $fillable = [
