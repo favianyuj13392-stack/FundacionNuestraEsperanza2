@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer"; 
 import Quotes from '@/components/Quotes';
-import Suscribe from '@/components/Suscribe'; 
+import Subscribe from '@/components/Suscribe'; 
 import AboutUs from '@/components/AboutUs';
 import DonationModal from '@/components/DonationModal'; 
 import MissionVision from '@/components/MissionVision';
@@ -40,7 +40,7 @@ const COMPONENT_MAP: Record<string, React.ComponentType<AboutUsSectionComponentP
   'our_programs': OurPrograms as React.ComponentType<AboutUsSectionComponentProps>,
   'team_directory': TeamDirectory as React.ComponentType<AboutUsSectionComponentProps>,
   'quotes': Quotes as React.ComponentType<AboutUsSectionComponentProps>,
-  'suscribe': Suscribe as React.ComponentType<AboutUsSectionComponentProps>,
+  'subscribe': Subscribe as React.ComponentType<AboutUsSectionComponentProps>,
 };
 
 export default function AboutPage() {
@@ -68,7 +68,7 @@ export default function AboutPage() {
       <main className="overflow-x-hidden">
         <Advertisements />
         <Navbar onOpenDonationModal={openModal} />
-        <div className="h-[90px]"></div> {/* Espaciador para el Advertisement fijo */}
+        <div className="h-[100px]"></div> {/* Espaciador para el Advertisement fijo */}
         
         {loading ? (
           <div className="flex justify-center items-center h-64">
