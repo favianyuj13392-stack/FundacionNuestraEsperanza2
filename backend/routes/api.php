@@ -234,6 +234,28 @@ Route::get('/how-to-help-sections', function () {
         });
 });
 
+Route::get('/about-us-sections', function () {
+    return AboutUsSection::where('is_active', true)
+        ->orderBy('order', 'asc')
+        ->get()
+        ->map(function ($section) {
+            return [
+                'id' => $section->id,
+                'identifier' => $section->identifier,
+                'name' => $section->name,
+                'title' => $section->title,
+                'subtitle' => $section->subtitle,
+                'content' => $section->content,
+                'image' => $section->image_url,
+                'is_active' => $section->is_active,
+                'order' => $section->order,
+                'meta_title' => $section->meta_title,
+                'meta_description' => $section->meta_description,
+                'meta_keywords' => $section->meta_keywords,
+            ];
+        });
+});
+
 Route::get('/sections/{identifier}', function (string $identifier) {
     $sectionMap = [
         'about_us' => AboutUsSection::class,
