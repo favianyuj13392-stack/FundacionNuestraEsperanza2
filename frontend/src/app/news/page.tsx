@@ -60,7 +60,7 @@ export default function NewsPage() {
         <main>
             <Advertisements />
             <Navbar onOpenDonationModal={openModal} />
-            <div className="h-[90px]"></div> {/* Espaciador para el Advertisement fijo */}
+            <div className="h-[70px]"></div> {/* Espaciador para el Advertisement fijo */}
 
             {loading ? (
               <div className="flex justify-center items-center h-64">
@@ -76,7 +76,7 @@ export default function NewsPage() {
                     key={section.id}
                     title={section.title ?? 'Noticias y Eventos'}
                     subtitle={section.subtitle ?? 'Mantente al día con nuestras actividades y logros.'}
-                    image={section.image?.trim() ? section.image : '/IMG/news-hero-bg.jpg'}
+                    image={section.image?.trim() ? section.image : '/IMG/historia.jpg'}
                   />
                 );
               }

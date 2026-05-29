@@ -78,7 +78,7 @@ export default function AboutPage() {
         sections.map((section) => {
           if (section.is_active === false) return null;
 
-          if (section.identifier === 'about_hero') {
+          if (section.identifier === 'about_us_hero') {
             return (
               <AboutHero
                 key={section.id}
