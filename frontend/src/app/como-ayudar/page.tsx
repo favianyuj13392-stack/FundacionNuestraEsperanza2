@@ -40,7 +40,7 @@ const COMPONENT_MAP: Record<string, React.ComponentType<HowToHelpSectionComponen
   'how_to_help': HowToHelp as React.ComponentType<HowToHelpSectionComponentProps>,
   'more_ways_to_help': MoreWaysToHelp as React.ComponentType<HowToHelpSectionComponentProps>,
   'social_media_help': SocialMediaHelp as React.ComponentType<HowToHelpSectionComponentProps>,
-  'qr_donation': QRDonationSection as React.ComponentType<HowToHelpSectionComponentProps>,
+  'qr_donation_section': QRDonationSection as React.ComponentType<HowToHelpSectionComponentProps>,
   'alliances': Alliances as React.ComponentType<HowToHelpSectionComponentProps>,
 };
 
