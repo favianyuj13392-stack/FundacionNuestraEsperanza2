@@ -1,68 +1,114 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DonationModal from "@/components/DonationModal";
 import Alliances from "@/components/Alliances";
 import HowToHelp from '@/components/HowToHelp';
-import { usePageSection } from '@/hooks/usePageSection';
 import HelpHero from '@/components/HelpHero';
 import DirectDonations from '@/components/DirectDonations';
 import MoreWaysToHelp from '@/components/MoreWaysToHelp';
 import SocialMediaHelp from '@/components/SocialMediaHelp';
 import QRDonationSection from '@/components/QRDonationSection';
+import GenericSection from '@/components/GenericSection';
+import Advertisements from '@/components/Advertisement';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
-const HelpPage = () => {
-  const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
-  const { section, loading } = usePageSection('how_to_help');
+interface HowToHelpSectionData {
+  id: number;
+  identifier: string;
+  name: string;
+  title?: string;
+  subtitle?: string;
+  content?: string;
+  image?: string | null;
+  is_active?: boolean;
+  order?: number;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+}
 
-  const handleOpenModal = () => setIsDonationModalOpen(true);
+interface HowToHelpSectionComponentProps {
+  data: HowToHelpSectionData;
+  onOpenDonationModal: () => void;
+}
 
-  if (!loading && section?.is_active === false) {
-    return (
-      <main>
-        <Navbar onOpenDonationModal={handleOpenModal} />
-        <section className="bg-white min-h-[70vh] flex items-center justify-center py-20">
-          <div className="text-center px-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-azul-marino mb-4">Sección de Cómo Ayudar deshabilitada</h1>
-            <p className="text-gray-600">La sección está oculta desde el administrador.</p>
-          </div>
-        </section>
-        <Footer onOpenDonationModal={handleOpenModal} />
-      </main>
-    );
-  }
+// Mapa de componentes: Conecta el 'identifier' de la DB con el Componente de React
+const COMPONENT_MAP: Record<string, React.ComponentType<HowToHelpSectionComponentProps>> = {
+  'direct_donations': DirectDonations as React.ComponentType<HowToHelpSectionComponentProps>,
+  'how_to_help': HowToHelp as React.ComponentType<HowToHelpSectionComponentProps>,
+  'more_ways_to_help': MoreWaysToHelp as React.ComponentType<HowToHelpSectionComponentProps>,
+  'social_media_help': SocialMediaHelp as React.ComponentType<HowToHelpSectionComponentProps>,
+  'qr_donation': QRDonationSection as React.ComponentType<HowToHelpSectionComponentProps>,
+  'alliances': Alliances as React.ComponentType<HowToHelpSectionComponentProps>,
+};
 
-  const heroTitle = section?.title ?? 'TU AYUDA HACE LA DIFERENCIA';
-  const heroSubtitle = section?.subtitle ?? 'Hay muchas formas de ser parte del cambio. Encuentra la tuya.';
-  const heroImage = section?.image ?? '/IMG/help-hero-bg.jpg';
+export default function HelpPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sections, setSections] = useState<HowToHelpSectionData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+  useEffect(() => {
+      fetch(`${API_BASE_URL}/api/how-to-help-sections`)
+        .then(res => res.json())
+        .then(data => {
+          // Asumiendo que la API devuelve un array de objetos con {identifier, is_active}
+          setSections(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error cargando secciones:", err);
+          setLoading(false);
+        });
+    }, []);
 
   return (
       <main className="bg-white">
-        <Navbar onOpenDonationModal={handleOpenModal} />
+        <Advertisements />
+        <Navbar onOpenDonationModal={openModal} />
+        <div className="h-[120px]"></div> {/* Espaciador para el Advertisement fijo */}
 
-        <HelpHero 
-          title={heroTitle} 
-          subtitle={heroSubtitle} 
-          image={heroImage} 
-        />
+        {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rosa-principal"></div>
+        </div>
+      ) : (
+        sections.map((section) => {
+          if (section.is_active === false) return null;
 
-        <DirectDonations onOpenDonationModal={handleOpenModal} />
+          if (section.identifier === 'help_hero') {
+            return (
+              <HelpHero
+                key={section.id}
+                title={section.title ?? 'TU AYUDA HACE LA DIFERENCIA'}
+                subtitle={section.subtitle ?? 'Hay muchas formas de ser parte del cambio. Encuentra la tuya.'}
+                image={section.image?.trim() ? section.image : '/IMG/help-hero-bg.jpg'}
+              />
+            );
+          }
+
+          const Component = COMPONENT_MAP[section.identifier];
+
+          if (Component) {
+            return (
+              <Component 
+                key={section.id} 
+                data={section}
+                onOpenDonationModal={openModal} 
+              />
+            );
+          }
+
+          return (
+            <GenericSection key={section.id} data={section} />
+          );
+        })
+      )}
         
-        <HowToHelp onOpenDonationModal={handleOpenModal} />
-        <MoreWaysToHelp />
-        <SocialMediaHelp />
-        <QRDonationSection />
-        <Alliances />
-        
-        <Footer onOpenDonationModal={handleOpenModal} />
-
-        <DonationModal 
-            isOpen={isDonationModalOpen} 
-            onClose={() => setIsDonationModalOpen(false)} 
-        />
+        <Footer onOpenDonationModal={openModal} />
+        <DonationModal isOpen={isModalOpen} onClose={closeModal} />
       </main>
   );
-};
-
-export default HelpPage;
+}

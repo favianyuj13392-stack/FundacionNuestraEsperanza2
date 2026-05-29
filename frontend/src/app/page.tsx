@@ -15,6 +15,7 @@ import Footer from "@/components/Footer";
 import DonationModal from '@/components/DonationModal';
 import Advertisements from '@/components/Advertisement';
 import GenericSection from '@/components/GenericSection';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 interface HomeSectionData {
   id: number;
@@ -59,9 +60,7 @@ export default function HomePage() {
   const closeModal = () => setIsModalOpen(false);
 
   useEffect(() => {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:8000';
-
-    fetch(`${apiBaseUrl}/api/home-sections`)
+    fetch(`${API_BASE_URL}/api/home-sections`)
       .then(res => res.json())
       .then(data => {
         // Asumiendo que la API devuelve un array de objetos con {identifier, is_active}
@@ -78,7 +77,7 @@ export default function HomePage() {
     <main className="min-h-screen">
       <Advertisements />
       <Navbar onOpenDonationModal={openModal} />
-      <div className="h-[132px]"></div> {/* Espaciador para el Advertisement fijo */}
+      <div className="h-[100px]"></div> {/* Espaciador para el Advertisement fijo */}
       
       {loading ? (
         <div className="flex justify-center items-center h-64">

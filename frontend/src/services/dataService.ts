@@ -1,12 +1,10 @@
 // frontend/src/services/dataService.js (o .ts)
 
 import axios from 'axios';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 // En frontend/src/services/DataService.ts
-
-// Usar process.env en lugar de import.meta.env
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api'; 
-// ...
+// Usar la URL base normalizada y evitar duplicar /api
 
 // --- 1. ENDPOINT DE PROGRAMAS ---
 export const fetchPrograms = async () => {

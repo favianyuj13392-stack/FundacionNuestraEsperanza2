@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 export interface HomeSectionStatus {
   identifier: string;
@@ -15,8 +16,6 @@ interface HomeSectionsContextValue {
 }
 
 const HomeSectionsContext = createContext<HomeSectionsContextValue | undefined>(undefined);
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:8000';
 
 export function HomeSectionsProvider({ children }: { children: ReactNode }) {
   const [sections, setSections] = useState<HomeSectionStatus[]>([]);
