@@ -49,14 +49,12 @@ Route::prefix('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    // --- Gestión de Roles (Tu código) ---
+    // --- Gestión de Roles ---
     Route::get('roles', [RoleController::class, 'index']);
     Route::post('users/{userId}/roles/assign', [RoleController::class, 'assign']);
     Route::post('users/{userId}/roles/revoke', [RoleController::class, 'revoke']);
 
-    // --- Gestión de Donaciones y QR (Del Repositorio) ---
-    // Nota: He usado la ruta completa de la clase como estaba en el repo, 
-    // pero idealmente deberías importarlos arriba con "use".
+    // --- Gestión de Donaciones y QR ---
     Route::get('admin/donation-tiers', [\App\Http\Controllers\AdminDonationController::class, 'indexTiers']);
     Route::post('admin/donation-tiers', [\App\Http\Controllers\AdminDonationController::class, 'storeTier']);
     Route::put('admin/donation-tiers/{tier}', [\App\Http\Controllers\AdminDonationController::class, 'updateTier']);
@@ -67,7 +65,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Public Content Endpoints (Tu código - CMS)
+| Public Content Endpoints (CMS)
 |--------------------------------------------------------------------------
 */
 
@@ -141,7 +139,7 @@ Route::post('/subscribe', function (Request $request) {
 
 /*
 |--------------------------------------------------------------------------
-| Public Donation Routes (Del Repositorio)
+| Public Donation Routes
 |--------------------------------------------------------------------------
 */
 Route::prefix('public')->group(function () {
@@ -150,9 +148,22 @@ Route::prefix('public')->group(function () {
     Route::get('check-status/{qrId}', [\App\Http\Controllers\PublicDonationController::class, 'checkStatus']);
 });
 
+/*
+|--------------------------------------------------------------------------
+| Domiciliación / Suscripción Recurrente (Público, sin auth requerida)
+| El donante no necesita estar registrado para suscribirse.
+|--------------------------------------------------------------------------
+*/
+Route::prefix('subscriptions')->group(function () {
+    // Crear suscripción + generar QR de domiciliación
+    Route::post('domiciliacion', [\App\Http\Controllers\BnbSubscriptionController::class, 'store']);
+    // Consultar estado de una suscripción (para polling desde el frontend)
+    Route::get('domiciliacion/{id}/status', [\App\Http\Controllers\BnbSubscriptionController::class, 'status']);
+});
+
+
 /**
  * Internal debug endpoints (DO NOT expose in production).
- * /internal/debug/bnb-auth returns the exact headers, raw body and BNB response.
  */
 Route::post('internal/debug/bnb-auth', function (\Illuminate\Http\Request $request) {
     $service = app(\App\Services\BnbDonationService::class);
@@ -160,7 +171,6 @@ Route::post('internal/debug/bnb-auth', function (\Illuminate\Http\Request $reque
     if ($request->has('accountId')) $overrides['accountId'] = $request->input('accountId');
     if ($request->has('authorizationId')) $overrides['authorizationId'] = $request->input('authorizationId');
 
-    // capture the environment value directly
     $envAccount = env('BNB_ACCOUNT_ID');
     $envAuth = env('BNB_AUTH_ID');
 
@@ -168,20 +178,17 @@ Route::post('internal/debug/bnb-auth', function (\Illuminate\Http\Request $reque
     return response()->json(array_merge(['env' => ['account' => $envAccount, 'auth' => $envAuth]], $result));
 });
 
-/**
- * Test endpoint to see if QR service can authenticate and generate a QR
- */
 Route::post('internal/debug/test-qr', function (\Illuminate\Http\Request $request) {
     try {
         $service = app(\App\Services\BnbDonationService::class);
         $amount = $request->input('amount', 10);
-        
+
         \Illuminate\Support\Facades\Log::info('Test QR: Starting', ['amount' => $amount]);
-        
+
         $result = $service->generateFixedQR($amount);
-        
+
         \Illuminate\Support\Facades\Log::info('Test QR: Generated', ['result_keys' => array_keys((array)$result)]);
-        
+
         return response()->json([
             'success' => true,
             'result' => $result
@@ -201,3 +208,11 @@ Route::post('internal/debug/test-qr', function (\Illuminate\Http\Request $reques
 |--------------------------------------------------------------------------
 */
 Route::post('webhooks/bnb', [\App\Http\Controllers\BnbWebhookController::class, 'handle']);
+
+// Webhooks de Domiciliación (Débito Automático)
+// ⚠️ Sin middleware de autenticación: el BNB llama a estos endpoints directamente.
+// ⚠️ Sin ?secret=: el BNB no soporta query params en URLs de webhook.
+Route::prefix('webhooks/bnb')->group(function () {
+    Route::post('enroll',  [\App\Http\Controllers\BnbDomiciliacionWebhookController::class, 'enroll']);
+    Route::post('payment', [\App\Http\Controllers\BnbDomiciliacionWebhookController::class, 'payment']);
+});
