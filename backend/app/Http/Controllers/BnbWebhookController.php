@@ -93,6 +93,7 @@ class BnbWebhookController extends Controller
 
                 // --- CREATE DONATION RECORD ---
                 $donation = \App\Models\Donation::create([
+                    'campaign_id' => $qr->campaign_id,
                     'amount' => $qr->amount,
                     'currency_id' => 1, // Default BOB
                     'status' => 'succeeded',
@@ -118,7 +119,7 @@ class BnbWebhookController extends Controller
             // Return strict success response as per docs
             return response()->json([
                 'success' => true,
-                'message' => 'Recibido'
+                'message' => 'OK'
             ]);
         });
     }

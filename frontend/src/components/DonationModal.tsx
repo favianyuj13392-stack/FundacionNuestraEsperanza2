@@ -1,14 +1,15 @@
 "use client";
-import React from 'react';
+import React, { Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DonationForm from './DonationForm'; // Reusing the unified logic
 
 interface DonationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  campaignId?: number;
 }
 
-const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose }) => {
+const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose, campaignId }) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -30,7 +31,9 @@ const DonationModal: React.FC<DonationModalProps> = ({ isOpen, onClose }) => {
              {/* We simply render the DonationForm which now handles the internal UI 
                  and accepts isInModal to adjust removing shadows or adding specific modal headers if needed.
              */}
-             <DonationForm onClose={onClose} isInModal={true} />
+             <Suspense fallback={<div className="bg-white p-8 rounded-xl text-center">Cargando formulario...</div>}>
+               <DonationForm onClose={onClose} isInModal={true} campaignIdProp={campaignId} />
+             </Suspense>
              
           </motion.div>
         </motion.div>

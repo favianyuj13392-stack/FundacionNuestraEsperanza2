@@ -37,6 +37,7 @@ class PublicDonationController extends Controller
         Log::info('requestQr: Started');
         
         $request->validate([
+            'campaign_id' => 'nullable|exists:campaigns,id',
             'tier_id' => 'nullable|exists:donation_tiers,id',
             'custom_amount' => 'nullable|numeric|min:1',
             'is_anonymous' => 'boolean',
@@ -123,6 +124,7 @@ class PublicDonationController extends Controller
 
             // Save QR record with enhanced fields
             $qr = Qr::create([
+                'campaign_id' => $request->campaign_id,
                 'amount' => $amount,
                 'status' => 'generated',
                 'bnb_blob' => json_encode($response),

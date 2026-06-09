@@ -18,7 +18,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
     { name: "Cómo Ayudar", path: "/como-ayudar" },
     { name: "Testimonios", path: "/testimonials" },
     { name: "Noticias", path: "/news" },
-    { name: "Contacto", path: "/#contacto" },
+    { name: "Campañas", path: "/campanas" },
   ];
 
   return (
@@ -35,9 +35,9 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center space-x-7">
+        <div className="hidden lg:flex items-center space-x-3 xl:space-x-6 text-sm xl:text-base">
           {navLinks.map((link) => (
-            <Link key={link.name} href={link.path} className="text-white hover:text-rosa-principal transition duration-300">
+            <Link key={link.name} href={link.path} className="text-white hover:text-rosa-principal transition duration-300 whitespace-nowrap">
               {link.name}
             </Link>
           ))}
@@ -56,7 +56,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
                   window.location.href = '/';
                   setTimeout(() => logout(), 100);
                 }}
-                className="text-white border border-white rounded-full px-6 py-2 hover:bg-white hover:text-azul-marino transition duration-300 font-button"
+                className="text-white border border-white rounded-full px-4 py-1.5 hover:bg-white hover:text-azul-marino transition duration-300 font-button"
               >
                 Salir
               </button>
@@ -75,7 +75,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
 
           <button
             onClick={onOpenDonationModal}
-            className="bg-rosa-principal text-white px-6 py-2 rounded-full font-bold hover:bg-amarillo-detalle transition duration-300 font-button"
+            className="bg-rosa-principal text-white px-5 py-1.5 rounded-full font-bold hover:bg-amarillo-detalle transition duration-300 font-button"
           >
             DONAR
           </button>

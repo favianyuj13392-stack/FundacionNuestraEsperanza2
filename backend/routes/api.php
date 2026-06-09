@@ -69,6 +69,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
+// 0. ENDPOINTS DE TRANSPARENCIA
+Route::get('/transparency', [\App\Http\Controllers\Api\TransparencyController::class, 'index']);
+Route::get('/transparency/{slug}', [\App\Http\Controllers\Api\TransparencyController::class, 'show']);
+
+
 // 1. ENDPOINT DE PROGRAMAS
 Route::get('/programs', function () {
     return Program::where('is_active', true)->latest()->get()->map(function ($program) {
@@ -143,6 +148,7 @@ Route::post('/subscribe', function (Request $request) {
 |--------------------------------------------------------------------------
 */
 Route::prefix('public')->group(function () {
+    Route::get('campaigns', [\App\Http\Controllers\PublicCampaignController::class, 'index']);
     Route::get('donation-options', [\App\Http\Controllers\PublicDonationController::class, 'getOptions']);
     Route::post('request-qr', [\App\Http\Controllers\PublicDonationController::class, 'requestQr']);
     Route::get('check-status/{qrId}', [\App\Http\Controllers\PublicDonationController::class, 'checkStatus']);

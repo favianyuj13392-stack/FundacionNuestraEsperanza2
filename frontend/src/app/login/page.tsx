@@ -49,14 +49,19 @@ export default function LoginPage() {
       if (responseData && responseData.user && responseData.token) {
         login(responseData.user, responseData.token); // Usamos la función del AuthContext
         
-        // Check for redirect param
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirect = urlParams.get('redirect');
-        
-        if (redirect === 'back') {
-             router.back();
+        // Check if there's a pending donation intent
+        if (localStorage.getItem('pendingDonation')) {
+            router.push('/como-ayudar');
         } else {
-          router.push('/perfil'); // Redirigir al perfil del usuario
+            // Check for redirect param
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            
+            if (redirect === 'back') {
+                 router.back();
+            } else {
+              router.push('/perfil'); // Redirigir al perfil del usuario
+            }
         }
       } else {
         setError('Respuesta del servidor inválida.');

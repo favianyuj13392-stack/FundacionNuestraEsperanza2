@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Cache;
 
 class Donation extends Model
 {
@@ -48,6 +49,32 @@ class Donation extends Model
     public function donor(): BelongsTo
     {
         return $this->belongsTo(Donor::class);
+    }
+
+    public function providerResponses()
+    {
+        return $this->hasMany(DonationProviderResponse::class);
+    }
+
+    protected static function booted()
+    {
+        static::saved(function ($donation) {
+            if ($donation->campaign_id) {
+                Cache::forget('transparency_campaigns');
+                if ($donation->campaign) {
+                    Cache::forget('transparency_campaign_' . $donation->campaign->slug);
+                }
+            }
+        });
+
+        static::deleted(function ($donation) {
+            if ($donation->campaign_id) {
+                Cache::forget('transparency_campaigns');
+                if ($donation->campaign) {
+                    Cache::forget('transparency_campaign_' . $donation->campaign->slug);
+                }
+            }
+        });
     }
 
     /**

@@ -52,7 +52,8 @@ export const donationService = {
         tierId?: number, 
         customAmount?: number, 
         isAnonymous: boolean = true, 
-        donorDetails?: { name: string, ci: string, phone: string }
+        donorDetails?: { name: string, ci: string, phone: string },
+        campaignId?: number
     ): Promise<QrResponse> => {
         const payload: Record<string, string | number | boolean> = {
             is_anonymous: isAnonymous
@@ -60,6 +61,8 @@ export const donationService = {
         
         if (tierId) payload.tier_id = tierId;
         else if (customAmount) payload.custom_amount = customAmount;
+        
+        if (campaignId) payload.campaign_id = campaignId;
 
         if (!isAnonymous && donorDetails) {
             payload.donor_name = donorDetails.name;
@@ -85,6 +88,46 @@ export const donationService = {
             headers: getAuthHeaders()
         });
         return response.data;
+    },
+
+    /**
+     * Request a Domiciliacion QR (Monthly subscription)
+     */
+    requestSubscriptionQr: async (
+        amount: number,
+        donorDetails: { name: string, email: string, address?: string, phone_number?: string },
+        campaignId?: number
+    ): Promise<QrResponse> => {
+        const payload: Record<string, string | number> = {
+            amount: amount,
+            name: donorDetails.name,
+            email: donorDetails.email,
+            phone_number: donorDetails.phone_number || '',
+            address: donorDetails.address || '',
+        };
+        if (campaignId) payload.campaign_id = campaignId;
+
+        const response = await axios.post(`${API_URL}/api/subscriptions/domiciliacion`, payload, {
+            headers: getAuthHeaders()
+        });
+        
+        // Map backend response structure to QrResponse
+        const data = response.data.data;
+        return {
+            qr_image: data.qr_image_base64,
+            qr_id: data.subscription_id.toString(), // Using subscription_id for polling
+            expiration: '', // Not strictly needed
+        };
+    },
+
+    /**
+     * Check status of a subscription
+     */
+    checkSubscriptionStatus: async (subscriptionId: string): Promise<{ status: string }> => {
+        const response = await axios.get<{ data: { is_enrolled: boolean, status: string } }>(`${API_URL}/api/subscriptions/domiciliacion/${subscriptionId}/status`, {
+            headers: getAuthHeaders()
+        });
+        return { status: response.data.data.is_enrolled ? 'paid' : 'pending' };
     },
 
     /**

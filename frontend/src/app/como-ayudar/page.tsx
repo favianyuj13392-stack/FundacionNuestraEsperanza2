@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Navbar from "@/components/Navbar";
@@ -198,7 +198,9 @@ const HelpPage = () => {
             </h2>
             <div className="flex justify-center">
                {/* Standalone DonationForm */}
-              <DonationForm />
+              <Suspense fallback={<div className="p-8 text-center bg-white rounded-xl shadow-xl">Cargando formulario...</div>}>
+                <DonationForm />
+              </Suspense>
             </div>
           </div>
         </section>

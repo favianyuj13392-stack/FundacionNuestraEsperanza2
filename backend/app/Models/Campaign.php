@@ -20,6 +20,8 @@ class Campaign extends Model
         'start_date',
         'end_date',
         'status',
+        'image_path',
+        'report_pdf_path',
     ];
 
     /**
@@ -45,6 +47,14 @@ class Campaign extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    /**
+     * A campaign can have many expenses.
+     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(CampaignExpense::class);
     }
 
     /**

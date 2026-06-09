@@ -2,20 +2,25 @@
 import React, { useState, useEffect } from 'react';
 import { donationService, DonationTier, QrResponse } from '@/services/donationService';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import NextImage from 'next/image';
 
 interface DonationFormProps {
     onClose?: () => void;
     isInModal?: boolean;
+    campaignIdProp?: number;
 }
 
-const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false }) => {
+const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false, campaignIdProp }) => {
     const { user } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const campaignIdParam = searchParams.get('campaign_id');
+    const campaignId = campaignIdProp !== undefined ? campaignIdProp : (campaignIdParam ? parseInt(campaignIdParam) : undefined);
 
     // States for Multi-step Flow
     const [step, setStep] = useState<'amount' | 'identity' | 'details' | 'qr' | 'success'>('amount');
+    const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
     
     // Data States
     const [tiers, setTiers] = useState<DonationTier[]>([]);
@@ -25,6 +30,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
     
     // Donor Details
     const [donorName, setDonorName] = useState('');
+    const [donorEmail, setDonorEmail] = useState('');
     const [donorCi, setDonorCi] = useState('');
     const [donorPhone, setDonorPhone] = useState('');
     
@@ -60,9 +66,10 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
         const pending = localStorage.getItem('pendingDonation');
         if (pending && user) {
             try {
-                const { tier, amount } = JSON.parse(pending);
+                const { tier, amount, frequency: savedFreq } = JSON.parse(pending);
                 if (tier) setSelectedTier(tier);
                 if (amount) setCustomAmount(amount);
+                if (savedFreq) setFrequency(savedFreq);
                 setStep('details');
                 localStorage.removeItem('pendingDonation');
             } catch (e) {
@@ -75,6 +82,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
     useEffect(() => {
         if (user) {
             if (user.name) setDonorName(user.name);
+            if (user.email) setDonorEmail(user.email);
         }
     }, [user]);
 
@@ -92,7 +100,13 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
                     return;
                 }
                 try {
-                    const data = await donationService.checkStatus(qrData.qr_id);
+                    let data;
+                    if (frequency === 'monthly') {
+                        data = await donationService.checkSubscriptionStatus(qrData.qr_id);
+                    } else {
+                        data = await donationService.checkStatus(qrData.qr_id);
+                    }
+                    
                     if (data.status === 'paid' || data.status === '2') {
                         setStatus('paid');
                         setStep('success');
@@ -126,7 +140,8 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
             if (!user) {
                 const state = {
                     tier: selectedTier,
-                    amount: customAmount
+                    amount: customAmount,
+                    frequency: frequency
                 };
                 localStorage.setItem('pendingDonation', JSON.stringify(state));
                 // Use window.location as fallback if router behaviour is inconsistent
@@ -138,8 +153,8 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
     };
 
     const submitDetails = () => {
-        if (!donorName.trim() || !donorCi.trim() || !donorPhone.trim()) {
-            setError("Por favor completa todos los campos.");
+        if (!donorName.trim() || !donorCi.trim() || !donorPhone.trim() || (frequency === 'monthly' && !donorEmail.trim())) {
+            setError("Por favor completa todos los campos requeridos.");
             return;
         }
         generateQr(false);
@@ -152,12 +167,18 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
         
         try {
             let res: QrResponse;
-            const details = anonymous ? undefined : { name: donorName, ci: donorCi, phone: donorPhone };
+            const details = anonymous ? undefined : { name: donorName, ci: donorCi, phone: donorPhone, email: donorEmail };
             
-            if (selectedTier) {
-                res = await donationService.requestQr(selectedTier, undefined, anonymous, details);
+            if (frequency === 'monthly') {
+                if (!details || !details.email) throw new Error("Faltan datos requeridos para donación mensual");
+                const finalAmount = selectedTier ? tiers.find(t => t.id === selectedTier)?.amount : customAmount;
+                res = await donationService.requestSubscriptionQr(parseFloat(finalAmount || '0'), details, campaignId);
             } else {
-                res = await donationService.requestQr(undefined, parseFloat(customAmount), anonymous, details);
+                if (selectedTier) {
+                    res = await donationService.requestQr(selectedTier, undefined, anonymous, details, campaignId);
+                } else {
+                    res = await donationService.requestQr(undefined, parseFloat(customAmount), anonymous, details, campaignId);
+                }
             }
             
             setQrData(res);
@@ -193,6 +214,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
         // Let's keep defaults
         if (!user) {
             setDonorName('');
+            setDonorEmail('');
             setDonorCi('');
             setDonorPhone('');
         }
@@ -254,6 +276,21 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
             {/* STEP 1: AMOUNT */}
             {step === 'amount' && (
                 <div className="animate-fade-in">
+                    <div className="flex bg-gray-100 p-1 rounded-full mb-6 relative">
+                        <button
+                            onClick={() => setFrequency('once')}
+                            className={`flex-1 py-2 text-sm font-bold rounded-full transition-all duration-300 z-10 ${frequency === 'once' ? 'bg-white text-rosa-principal shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Una sola vez
+                        </button>
+                        <button
+                            onClick={() => setFrequency('monthly')}
+                            className={`flex-1 py-2 text-sm font-bold rounded-full transition-all duration-300 z-10 ${frequency === 'monthly' ? 'bg-white text-rosa-principal shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Mensualmente
+                        </button>
+                    </div>
+
                     <div className="flex justify-center space-x-3 mb-6">
                         {tiers.map((tier) => (
                             <button
@@ -309,7 +346,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
                         </div>
                     </button>
                     
-                    { !user && (
+                    { (!user && frequency !== 'monthly') && (
                         <button
                             onClick={() => handleIdentitySelect(true)}
                             className="w-full py-4 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition flex items-center justify-center gap-3"
@@ -345,6 +382,18 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false 
                                 placeholder="Ej: Juan Pérez"
                             />
                         </div>
+                        {frequency === 'monthly' && (
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 ml-1 mb-1">Correo Electrónico</label>
+                            <input
+                                type="email"
+                                value={donorEmail}
+                                onChange={(e) => setDonorEmail(e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-rosa-principal outline-none"
+                                placeholder="Ej: correo@ejemplo.com"
+                            />
+                        </div>
+                        )}
                         <div>
                             <label className="block text-sm font-bold text-gray-700 ml-1 mb-1">CI / Documento ID</label>
                             <input
