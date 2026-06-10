@@ -51,6 +51,7 @@ class AdvertisementResource extends Resource
                         CuratorPicker::make('image')
                             ->label('Images')
                             ->columnSpanFull()
+                            ->disk('cloudinary')
                             ->directory('advertisements'),
 
                         RichEditor::make('content')

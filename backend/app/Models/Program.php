@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Program extends Model
 {
@@ -16,7 +17,28 @@ class Program extends Model
         'is_active',
     ];
 
+    protected $appends = ['image_url'];
+
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http')) {
+            return $this->image;
+        }
+
+        if (Storage::disk('cloudinary')->exists($this->image)) {
+            return Storage::disk('cloudinary')->url($this->image);
+        }
+
+        return Storage::disk('public')->exists($this->image)
+            ? asset('storage/' . ltrim($this->image, '/'))
+            : null;
+    }
 }

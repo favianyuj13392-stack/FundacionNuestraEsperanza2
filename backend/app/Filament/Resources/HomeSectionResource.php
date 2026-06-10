@@ -66,6 +66,7 @@ class HomeSectionResource extends Resource
                             ->label('Content'),
 
                         CuratorPicker::make('image')
+                            ->disk('cloudinary')
                             ->label('Principal Image')
                             ->buttonLabel('Select Image')
                             ->size('sm')

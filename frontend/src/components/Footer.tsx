@@ -2,6 +2,22 @@
 import React, { useState,useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { resolveImageUrl } from '@/utils/imageUrl';
+
+interface NavLink {
+  title: string;
+  url: string;
+  location?: string;
+}
+
+interface FooterSettings {
+  global_logo?: string;
+  footer_about_text?: string;
+  social_facebook?: string;
+  social_instagram?: string;
+  social_tiktok?: string;
+  [key: string]: unknown;
+}
 
 // 1. DEFINIMOS QUÉ RECIBE EL COMPONENTE (La "puerta de entrada")
 interface FooterProps {
@@ -16,9 +32,8 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const API_URL = 'http://127.0.0.1:8000/api';
-  const STORAGE_URL = 'http://127.0.0.1:8000/storage';
-  const [settings, setSettings] = useState<any>(null);
-  const [navLinks, setNavLinks] = useState<any[]>([]);
+  const [settings, setSettings] = useState<FooterSettings | null>(null);
+  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
 
   useEffect(() => {
     //Cargar settings
@@ -31,15 +46,13 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
       .then(res => res.json())
       .then(data => {
         // Filtramos solo los links que deben ir en el footer (o en ambos)
-        const footerLinks = data.filter((link: any) => link.location === 'footer' || link.location === 'both');
+        const footerLinks = data.filter((link: NavLink) => link.location === 'footer' || link.location === 'both');
         setNavLinks(footerLinks);
       })
       .catch(err => console.error("Error cargando nav-links en Footer:", err));
   }, []);
   // Preparamos la URL del logo para el footer
-  const footerLogoUrl = settings?.global_logo 
-    ? `http://127.0.0.1:8000/storage/${settings.global_logo}` 
-    : "/IMG/Logo.jpg";
+  const footerLogoUrl = resolveImageUrl(settings?.global_logo, "/IMG/Logo.jpg");
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +99,7 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
           <div className="flex items-center sm:col-span-2 lg:col-span-1 justify-center lg:justify-start">
             <div className="relative w-60 h-60">
                 {settings?.global_logo && (
-                  <Image src={`${STORAGE_URL}/${settings.global_logo}`} alt="Logo" width={200} height={200} className=" object-contain" />
+                  <Image src={footerLogoUrl} alt="Logo" width={200} height={200} className=" object-contain" />
                 )}
             </div>
           </div>

@@ -89,7 +89,7 @@ Route::get('/programs', function () {
             'id' => $program->id,
             'title' => $program->title,
             'description' => $program->description, 
-            'image' => $program->image ? asset('storage/' . $program->image) : null,
+            'image' => $program->image_url,
             'color' => $program->color,
         ];
     });
@@ -102,7 +102,7 @@ Route::get('/news', function () {
             'id' => $news->id,
             'title' => $news->title,
             'content' => $news->content,
-            'image' => $news->image ? asset('storage/' . $news->image) : null,
+            'image' => $news->image_url,
             'date' => $news->publication_date ? $news->publication_date->format('d/m/Y') : null,
         ];
     });
@@ -120,7 +120,7 @@ Route::get('/testimonials', function () {
             'embedUrl' => $testimonial->embed_url ?? null,
             'externalLink' => $testimonial->external_link ?? '#',
             'age' => $testimonial->age ?? '',
-            'image' => $testimonial->image ? asset('storage/' . $testimonial->image) : null,
+            'image' => $testimonial->image_url,
         ];
     });
 });
@@ -151,7 +151,15 @@ Route::post('/subscribe', function (Request $request) {
 });
 // 6. ENDPOINT PARA SETTINGS
 Route::get('/settings', function () {
-    return Setting::all()->pluck('value', 'key');
+    return Setting::all()->mapWithKeys(function ($setting) {
+        $value = $setting->value;
+
+        if ($setting->type === 'image' && filled($value)) {
+            $value = Storage::disk('cloudinary')->url($value);
+        }
+
+        return [$setting->key => $value];
+    });
 });
 // 7. ENDPOINT PARA LINKS MENÚ
 Route::get('/nav-links', function () {
@@ -366,7 +374,7 @@ Route::get('/alliances', function () {
                 'name' => $alliance->name,
                 'url' => $alliance->url,
                 // Si usas Curator para el logo, esto obtiene la URL real
-                'logo_url' => $alliance->logo ? asset('storage/' . $alliance->media?->path) : asset('images/default-logo.png'),
+                'logo_url' => $alliance->logo_url,
             ];
         });
 });

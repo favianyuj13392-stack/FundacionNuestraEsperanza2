@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
         port: '8000',
         pathname: '/storage/**', // Ruta de almacenamiento
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
       // Cuando subas a Hostinger, agrega aquí tu dominio real:
       // { protocol: 'https', hostname: 'tufundacion.org', ... }
     ],

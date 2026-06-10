@@ -33,7 +33,7 @@ class TestimonialResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('image')
                     ->image()
-                    ->disk('public')
+                    ->disk('cloudinary')
                     ->directory('testimonials') 
                     ->imageResizeMode('cover') 
                     ->imageResizeTargetWidth('1080') // Redimensiona a 1080px de ancho máximo
@@ -53,7 +53,8 @@ class TestimonialResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('role')
                     ->searchable(),
-                Tables\Columns\ImageColumn::make('image'),
+                Tables\Columns\ImageColumn::make('image')
+                    ->disk('cloudinary'),
                 Tables\Columns\TextColumn::make('date')
                     ->date()
                     ->sortable(),

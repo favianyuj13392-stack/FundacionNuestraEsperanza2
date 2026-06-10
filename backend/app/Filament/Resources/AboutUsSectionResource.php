@@ -64,6 +64,7 @@ class AboutUsSectionResource extends Resource
                         ->label('Content'),
 
                     CuratorPicker::make('image')
+                        ->disk('cloudinary')
                         ->label('Section Image')
                         ->buttonLabel('Select Image')
                         ->size('sm')

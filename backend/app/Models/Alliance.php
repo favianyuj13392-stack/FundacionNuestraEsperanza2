@@ -17,6 +17,7 @@ class Alliance extends Model
     }
 
     public $timestamps = false;
+    protected $appends = ['logo_url'];
     // Permitimos la carga masiva de estos campos
     protected $fillable = [
         'name',

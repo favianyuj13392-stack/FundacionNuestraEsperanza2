@@ -2,23 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { resolveImageUrl } from '@/utils/imageUrl';
 
 // --- 1. CONFIGURACIÓN DE URL DEL BACKEND (Igual que en Programs) ---
 // Define aquí la dirección de tu backend Laravel.
 const LARAVEL_BASE_URL = 'http://127.0.0.1:8000'; 
-
-// --- 2. FUNCIÓN HELPER PARA IMÁGENES (Igual que en Programs) ---
-const getImageUrl = (imagePath: string | null) => {
-    if (!imagePath) return '/placeholder-image.jpg'; // Imagen por defecto si es null
-
-    // Si la ruta ya es una URL completa (ej: http://...), la devolvemos tal cual
-    if (imagePath.startsWith('http')) {
-        return imagePath;
-    }
-
-    // Si la ruta es relativa (ej: "testimonials/foto.jpg"), le añadimos el dominio
-    return `${LARAVEL_BASE_URL}/storage/${imagePath}`;
-};
 
 // Interfaz alineada con tu API y BD
 interface TestimonialItem {
@@ -141,7 +129,7 @@ const TestimonialsSection = () => {
                 {/* --- 3. APLICACIÓN DE LA SOLUCIÓN DE IMAGEN --- */}
                 <Image
                   // Usamos la función helper aquí
-                  src={getImageUrl(testimonial.image)}
+                  src={resolveImageUrl(testimonial.image)}
                   alt={`Foto de ${testimonial.name}`}
                   layout="fill"
                   objectFit="cover"

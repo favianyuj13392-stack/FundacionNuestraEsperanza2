@@ -30,7 +30,7 @@ class ProgramResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('image')
                     ->image()
-                    ->disk('public')
+                    ->disk('cloudinary')
                     ->directory('programs') 
                     ->imageResizeMode('cover') 
                     ->imageResizeTargetWidth('1080') // Redimensiona a 1080px de ancho máximo
@@ -53,7 +53,8 @@ class ProgramResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
-                Tables\Columns\ImageColumn::make('image'),
+                Tables\Columns\ImageColumn::make('image')
+                    ->disk('cloudinary'),
                 Tables\Columns\TextColumn::make('color')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_active')

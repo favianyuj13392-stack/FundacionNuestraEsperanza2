@@ -43,7 +43,7 @@ class SettingResource extends Resource
                     // Campo de imagen: Solo aparece si el tipo ES imagen (como el logo)
                     Forms\Components\FileUpload::make('value')
                         ->label('Imagen / Logo')
-                        ->disk('public')
+                        ->disk('cloudinary')
                         ->directory('settings')
                         ->image()
                         ->visible(fn ($record) => $record && $record->type === 'image')
@@ -65,7 +65,7 @@ class SettingResource extends Resource
 
             Tables\Columns\ImageColumn::make('value')
                 ->label('Image / Logo')
-                ->disk('public')
+                ->disk('cloudinary')
                 // Usamos el operador null-safe (?->) por seguridad
                 ->visible(fn ($record) => $record?->type === 'image')
                 ->defaultImageUrl(url('/images/placeholder.png'))

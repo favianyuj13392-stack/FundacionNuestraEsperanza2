@@ -32,6 +32,7 @@ class AllianceResource extends Resource
                 CuratorPicker::make('logo')
                     ->label('Logo')
                     ->required()
+                    ->disk('cloudinary')
                     ->constrained(true),
                 Forms\Components\TextInput::make('url')
                     ->label('URL')

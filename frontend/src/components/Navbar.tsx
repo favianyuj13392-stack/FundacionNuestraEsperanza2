@@ -3,6 +3,14 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { resolveImageUrl } from '@/utils/imageUrl';
+
+interface NavLink {
+  id?: number;
+  title: string;
+  url: string;
+  location?: string;
+}
 
 interface NavbarProps {
   onOpenDonationModal?: () => void; // Función para abrir el modal (opcional)
@@ -10,7 +18,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
   const [logoUrl, setLogoUrl] = useState("/IMG/Logo.jpg");
-  const [navLinks, setNavLinks] = useState<any[]>([]);
+  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout, isLoading } = useAuth();
   const API_BASE_URL = 'http://127.0.0.1:8000';
@@ -29,7 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
       .then(res => res.json())
       .then(data => {
         if (data.global_logo) {
-          setLogoUrl(`${API_BASE_URL}/storage/${data.global_logo}`);
+          setLogoUrl(resolveImageUrl(data.global_logo));
         }
       })
       .catch(err => console.error("Error al cargar el logo en Navbar:", err));
@@ -38,7 +46,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
       .then(res => res.json())
       .then(data => {
         // Filtramos solo los que deben ir en el header o en ambos
-        const headerLinks = data.filter((link: any) => 
+        const headerLinks = data.filter((link: NavLink) => 
           link.location === 'header' || link.location === 'both'
         );
         setNavLinks(headerLinks);

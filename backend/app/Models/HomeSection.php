@@ -4,6 +4,7 @@ namespace App\Models;
 use App\Models\Traits\AdjustsOrder;
 use Illuminate\Database\Eloquent\Model;
 use Awcodes\Curator\Models\Media;
+use Illuminate\Support\Facades\Storage;
 
 class HomeSection extends Model
 {
@@ -28,6 +29,12 @@ class HomeSection extends Model
             return $this->image;
         }
 
-        return asset('storage/' . ltrim($this->image, '/'));
+        if (Storage::disk('cloudinary')->exists($this->image)) {
+            return Storage::disk('cloudinary')->url($this->image);
+        }
+
+        return Storage::disk('public')->exists($this->image)
+            ? asset('storage/' . ltrim($this->image, '/'))
+            : null;
     }
 }
