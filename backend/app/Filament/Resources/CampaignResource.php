@@ -79,7 +79,12 @@ class CampaignResource extends Resource
 
                         return $result['secure_url'];
                     })
-                    ->getUploadedFileUrlUsing(fn ($state) => $state)
+                    ->getUploadedFileUsing(fn ($file) => [
+                        'name' => basename($file),
+                        'size' => 0,
+                        'type' => 'image/jpeg',
+                        'url' => $file,
+                    ])
                     ->deleteUploadedFileUsing(function ($state) {
                         if (!$state || !str_contains($state, 'cloudinary.com')) {
                             return;
