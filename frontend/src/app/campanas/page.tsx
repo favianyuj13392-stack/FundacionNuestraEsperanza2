@@ -78,7 +78,7 @@ export default function CampanasPage() {
                                 <div className="relative h-48 w-full bg-gray-200">
                                     {campaign.image_path ? (
                                         <Image 
-                                            src={`${process.env.NEXT_PUBLIC_API_BASE_URL ? process.env.NEXT_PUBLIC_API_BASE_URL.replace('/api', '') : 'http://127.0.0.1:8000'}/storage/${campaign.image_path}`} 
+                                            src={campaign.image_path.startsWith('http') ? campaign.image_path : `${process.env.NEXT_PUBLIC_API_BASE_URL ? process.env.NEXT_PUBLIC_API_BASE_URL.replace('/api', '') : 'http://127.0.0.1:8000'}/storage/${campaign.image_path}`} 
                                             alt={campaign.name} 
                                             fill 
                                             className="object-cover" 

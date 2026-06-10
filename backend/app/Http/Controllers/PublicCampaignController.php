@@ -31,7 +31,7 @@ class PublicCampaignController extends Controller
                     'name' => $campaign->name,
                     'slug' => $campaign->slug,
                     'description' => $campaign->description,
-                    'image' => $campaign->image_path ? url('storage/' . $campaign->image_path) : null,
+                    'image' => $campaign->image_path ? (str_starts_with($campaign->image_path, 'http') ? $campaign->image_path : url('storage/' . $campaign->image_path)) : null,
                     'goal' => $stats['goal'],
                     'raised' => $stats['raised'],
                     'percentage' => $stats['percentage'],

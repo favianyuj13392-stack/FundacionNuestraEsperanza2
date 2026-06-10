@@ -59,9 +59,60 @@ class CampaignResource extends Resource
                     ->required(),
                 Forms\Components\FileUpload::make('image_path')
                     ->image()
-                    ->disk('public')
-                    ->directory('campaigns')
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->saveUploadedFileUsing(function (\Livewire\Features\SupportFileUploads\TemporaryUploadedFile $file) {
+                        \Cloudinary\Configuration\Configuration::instance([
+                            'cloud' => [
+                                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                                'api_key'    => env('CLOUDINARY_API_KEY'),
+                                'api_secret' => env('CLOUDINARY_API_SECRET'),
+                            ],
+                            'url' => [
+                                'secure' => true
+                            ]
+                        ]);
+
+                        $upload = new \Cloudinary\Api\Upload\UploadApi();
+                        $result = $upload->upload($file->getRealPath(), [
+                            'folder' => 'campaigns',
+                        ]);
+
+                        return $result['secure_url'];
+                    })
+                    ->getUploadedFileUrlUsing(fn ($state) => $state)
+                    ->deleteUploadedFileUsing(function ($state) {
+                        if (!$state || !str_contains($state, 'cloudinary.com')) {
+                            return;
+                        }
+
+                        \Cloudinary\Configuration\Configuration::instance([
+                            'cloud' => [
+                                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                                'api_key'    => env('CLOUDINARY_API_KEY'),
+                                'api_secret' => env('CLOUDINARY_API_SECRET'),
+                            ],
+                            'url' => [
+                                'secure' => true
+                            ]
+                        ]);
+
+                        $parts = explode('/upload/', $state);
+                        if (count($parts) === 2) {
+                            $subParts = explode('/', $parts[1], 2);
+                            if (count($subParts) === 2) {
+                                $publicId = pathinfo($subParts[1], PATHINFO_DIRNAME) === '.' 
+                                    ? pathinfo($subParts[1], PATHINFO_FILENAME) 
+                                    : pathinfo($subParts[1], PATHINFO_DIRNAME) . '/' . pathinfo($subParts[1], PATHINFO_FILENAME);
+                                
+                                try {
+                                    $upload = new \Cloudinary\Api\Upload\UploadApi();
+                                    $upload->destroy($publicId);
+                                } catch (\Exception $e) {
+                                    \Illuminate\Support\Facades\Log::error('Error deleting image from Cloudinary: ' . $e->getMessage());
+                                }
+                            }
+                        }
+                    }),
                 Forms\Components\FileUpload::make('report_pdf_path')
                     ->acceptedFileTypes(['application/pdf'])
                     ->disk('public')

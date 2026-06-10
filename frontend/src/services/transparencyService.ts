@@ -40,7 +40,7 @@ export interface TransparencyDetail {
 export const fetchTransparencyCampaigns = async (): Promise<TransparencyCampaign[]> => {
     try {
         const response = await axios.get(`${API_BASE_URL}/transparency`);
-        return response.data?.data || [];
+        return (response.data as any)?.data || [];
     } catch (error) {
         console.error("Error fetching transparency campaigns:", error);
         return [];
@@ -50,7 +50,7 @@ export const fetchTransparencyCampaigns = async (): Promise<TransparencyCampaign
 export const fetchTransparencyDetail = async (slug: string): Promise<TransparencyDetail | null> => {
     try {
         const response = await axios.get(`${API_BASE_URL}/transparency/${slug}`);
-        return response.data?.data || null;
+        return (response.data as any)?.data || null;
     } catch (error) {
         console.error(`Error fetching transparency detail for ${slug}:`, error);
         return null;

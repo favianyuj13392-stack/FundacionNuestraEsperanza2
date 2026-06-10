@@ -112,7 +112,7 @@ export const donationService = {
         });
         
         // Map backend response structure to QrResponse
-        const data = response.data.data;
+        const data = (response.data as any).data;
         return {
             qr_image: data.qr_image_base64,
             qr_id: data.subscription_id.toString(), // Using subscription_id for polling
