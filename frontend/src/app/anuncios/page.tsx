@@ -1,24 +1,29 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import type { Advertisement } from '@/types/api';
 import Image from 'next/image';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from 'framer-motion';
 import { ExternalLink, Sparkles, TrendingUp, X } from 'lucide-react';
 
-const imageLoader = ({ src }: { src: string }) => src;
+import { cloudinaryLoader } from '@/utils/cloudinaryLoader';
+const imageLoader = cloudinaryLoader;
 
 export default function AnnouncementsPage() {
-  const [ads, setAds] = useState([]);
+  const [ads, setAds] = useState<Advertisement[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [selectedAd, setSelectedAd] = useState<any>(null);
+  const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/advertisements')
       .then(res => res.json())
-      .then(data => setAds(data.filter(a => a.is_active)));
+      .then((data: unknown) => {
+        const arr = Array.isArray(data) ? (data as Advertisement[]) : [];
+        setAds(arr.filter((a) => Boolean(a.is_active)));
+      });
   }, []);
 
   const pageCount = Math.max(1, Math.ceil(ads.length / itemsPerPage));
@@ -46,7 +51,7 @@ export default function AnnouncementsPage() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.8, ease: "easeOut" },
+      transition: { duration: 0.8 },
     },
   };
 
@@ -137,7 +142,7 @@ export default function AnnouncementsPage() {
           viewport={{ once: true, margin: "-100px" }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          {paginatedAds.map((ad: any, index) => (
+          {paginatedAds.map((ad: Advertisement, index) => (
             <motion.div
               key={ad.id}
               variants={itemVariants}
@@ -154,7 +159,7 @@ export default function AnnouncementsPage() {
                   <Image
                     loader={imageLoader}
                     src={ad.image_url || 'https://via.placeholder.com/400x300?text=Anuncio'}
-                    alt={ad.title}
+                    alt={ad.title || ''}
                     fill
                     className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
                     unoptimized
@@ -194,7 +199,7 @@ export default function AnnouncementsPage() {
                     
                     <div 
                       className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: ad.content || ad.description }}
+                      dangerouslySetInnerHTML={{ __html: String(ad.content || ad.description || '') }}
                     />
                   </div>
 
@@ -319,7 +324,7 @@ export default function AnnouncementsPage() {
               <Image
                 loader={imageLoader}
                 src={selectedAd.image_url || 'https://via.placeholder.com/800x400?text=Anuncio'}
-                alt={selectedAd.title}
+                alt={selectedAd.title || ''}
                 fill
                 className="w-full h-full object-cover"
                 unoptimized
@@ -340,7 +345,7 @@ export default function AnnouncementsPage() {
               {/* Descripción */}
               <div 
                 className="text-gray-700 text-lg leading-relaxed mb-8 max-h-60 overflow-y-auto pr-3 font-sans"
-                dangerouslySetInnerHTML={{ __html: selectedAd.content || selectedAd.description }}
+                dangerouslySetInnerHTML={{ __html: String(selectedAd.content || selectedAd.description || '') }}
               />
 
               {/* Botón CTA */}

@@ -28,16 +28,21 @@ class News extends Model
             return null;
         }
 
+        // If already a full URL (from Cloudinary or other source), return as-is
         if (str_starts_with($this->image, 'http')) {
             return $this->image;
         }
 
-        if (Storage::disk('cloudinary')->exists($this->image)) {
-            return Storage::disk('cloudinary')->url($this->image);
+        // Try to serve from public storage
+        try {
+            if (Storage::disk('public')->exists($this->image)) {
+                return asset('storage/' . ltrim($this->image, '/'));
+            }
+        } catch (\Exception $e) {
+            // Silently fail if storage check fails
         }
 
-        return Storage::disk('public')->exists($this->image)
-            ? asset('storage/' . ltrim($this->image, '/'))
-            : null;
+        // Return the path as-is (assuming it's already a valid URL or path)
+        return $this->image;
     }
 }

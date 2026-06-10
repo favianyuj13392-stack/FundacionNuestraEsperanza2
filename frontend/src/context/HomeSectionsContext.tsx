@@ -32,9 +32,9 @@ export function HomeSectionsProvider({ children }: { children: ReactNode }) {
 
         const data = await response.json();
         const normalized = Array.isArray(data)
-          ? data.map((item: any) => ({
-              identifier: item.identifier,
-              is_active: Boolean(item.is_active),
+          ? (data as Record<string, unknown>[]).map((item) => ({
+              identifier: String(item['identifier'] || ''),
+              is_active: Boolean(item['is_active']),
             }))
           : [];
 

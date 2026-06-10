@@ -17,8 +17,9 @@ const NewsSection = () => {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedId, setExpandedId] = useState<number | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    const API_URL = 'http://127.0.0.1:8000/api';
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
 
     useEffect(() => {
         const loadNews = async () => {
@@ -26,19 +27,24 @@ const NewsSection = () => {
                 const response = await fetch(`${API_URL}/news`);
                 if (response.ok) {
                     const data = await response.json();
-                    setNews(data);
+                    setNews(data && Array.isArray(data) ? data : []);
+                    if (!data || data.length === 0) {
+                        setError("No hay noticias disponibles en este momento.");
+                    }
                 } else {
-                    console.error("Error al obtener noticias");
+                    console.error("Error al obtener noticias: Status", response.status);
+                    setError("No se pudieron cargar las noticias del servidor.");
                 }
             } catch (error) {
                 console.error("Error de conexión:", error);
+                setError("Error de conexión. Por favor, intenta más tarde.");
             } finally {
                 setLoading(false);
             }
         };
 
         loadNews();
-    }, []);
+    }, [API_URL]);
 
     const toggleExpand = (id: number) => {
         setExpandedId(prevId => (prevId === id ? null : id));
@@ -54,6 +60,8 @@ const NewsSection = () => {
             <div className="container mx-auto px-6">
                 {loading ? (
                     <div className="text-center py-20 text-gray-500 font-sans">Cargando noticias...</div>
+                ) : error ? (
+                    <div className="text-center py-20 text-gray-500 font-sans">{error}</div>
                 ) : news.length === 0 ? (
                     <div className="text-center py-20 text-gray-500 font-sans">No hay noticias publicadas aún.</div>
                 ) : (

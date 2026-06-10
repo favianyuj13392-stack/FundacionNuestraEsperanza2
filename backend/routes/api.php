@@ -84,45 +84,87 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
 // 1. ENDPOINT DE PROGRAMAS
 Route::get('/programs', function () {
-    return Program::where('is_active', true)->latest()->get()->map(function ($program) {
-        return [
-            'id' => $program->id,
-            'title' => $program->title,
-            'description' => $program->description, 
-            'image' => $program->image_url,
-            'color' => $program->color,
-        ];
-    });
+    try {
+        $programs = Program::where('is_active', true)->latest()->get();
+        $result = [];
+        
+        foreach ($programs as $program) {
+            try {
+                $result[] = [
+                    'id' => $program->id,
+                    'title' => $program->title,
+                    'description' => $program->description, 
+                    'image' => $program->image_url ?? null,
+                    'color' => $program->color,
+                ];
+            } catch (\Exception $e) {
+                // Skip this program if there's an error accessing its properties
+                \Log::warning("Error processing program {$program->id}: " . $e->getMessage());
+            }
+        }
+        
+        return response()->json($result);
+    } catch (\Exception $e) {
+        \Log::error("Error loading programs: " . $e->getMessage());
+        return response()->json(['error' => 'Error loading programs', 'message' => $e->getMessage()], 500);
+    }
 });
 
 // 2. ENDPOINT DE NOTICIAS
 Route::get('/news', function () {
-    return News::latest('publication_date')->get()->map(function ($news) {
-        return [
-            'id' => $news->id,
-            'title' => $news->title,
-            'content' => $news->content,
-            'image' => $news->image_url,
-            'date' => $news->publication_date ? $news->publication_date->format('d/m/Y') : null,
-        ];
-    });
+    try {
+        $news = News::latest('publication_date')->get();
+        $result = [];
+        
+        foreach ($news as $item) {
+            try {
+                $result[] = [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'content' => $item->content,
+                    'image' => $item->image_url ?? null,
+                    'date' => $item->publication_date ? $item->publication_date->format('d/m/Y') : null,
+                ];
+            } catch (\Exception $e) {
+                \Log::warning("Error processing news {$item->id}: " . $e->getMessage());
+            }
+        }
+        
+        return response()->json($result);
+    } catch (\Exception $e) {
+        \Log::error("Error loading news: " . $e->getMessage());
+        return response()->json(['error' => 'Error loading news', 'message' => $e->getMessage()], 500);
+    }
 });
 
 // 3. ENDPOINT DE TESTIMONIOS
 Route::get('/testimonials', function () {
-    return Testimonial::latest()->get()->map(function ($testimonial) {
-        return [
-
-            'id' => $testimonial->id,
-            'name' => $testimonial->name,
-            'content' => $testimonial->content, 
-            'type' => $testimonial->type ?? 'image', 
-            'embedUrl' => $testimonial->embed_url ?? null,
-            'externalLink' => $testimonial->external_link ?? '#',
-            'age' => $testimonial->age ?? '',
-            'image' => $testimonial->image_url,
-        ];
-    });
+    try {
+        $testimonials = Testimonial::latest()->get();
+        $result = [];
+        
+        foreach ($testimonials as $item) {
+            try {
+                $result[] = [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'content' => $item->content, 
+                    'type' => $item->type ?? 'image', 
+                    'embedUrl' => $item->embed_url ?? null,
+                    'externalLink' => $item->external_link ?? '#',
+                    'age' => $item->age ?? '',
+                    'image' => $item->image_url ?? null,
+                ];
+            } catch (\Exception $e) {
+                \Log::warning("Error processing testimonial {$item->id}: " . $e->getMessage());
+            }
+        }
+        
+        return response()->json($result);
+    } catch (\Exception $e) {
+        \Log::error("Error loading testimonials: " . $e->getMessage());
+        return response()->json(['error' => 'Error loading testimonials', 'message' => $e->getMessage()], 500);
+    }
 });
 
 // 4. ENDPOINT PARA CONTACTO

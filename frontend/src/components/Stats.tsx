@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { motion, useInView, animate } from 'framer-motion';
+import type { Stat } from '@/types/api';
 
 function Counter({ from, to }: { from: number, to: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -24,12 +25,15 @@ function Counter({ from, to }: { from: number, to: number }) {
 }
 
 const Stats = () => {
-  const [stats, setStats] = useState<any[]>([]);
+  const [stats, setStats] = useState<Stat[]>([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/stats') 
+    fetch('http://127.0.0.1:8000/api/stats')
       .then(res => res.json())
-      .then(data => setStats(data))
+      .then((data: unknown) => {
+        const arr = Array.isArray(data) ? (data as Record<string, unknown>[]) : [];
+        setStats(arr.map(d => ({ label: String(d['label'] || ''), number: d['number'] as number | string })));
+      })
       .catch(err => console.error("Error cargando stats:", err));
   }, []);
 

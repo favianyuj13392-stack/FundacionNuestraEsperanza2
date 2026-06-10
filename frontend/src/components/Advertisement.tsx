@@ -1,22 +1,24 @@
 "use client";
 import React, { useEffect, useState, useCallback } from 'react';
+import type { Advertisement } from '@/types/api';
 import Image from 'next/image';
 import { X,  ChevronLeft, ChevronRight, BellRing } from 'lucide-react';
 
-const imageLoader = ({ src }: { src: string }) => src;
+import { cloudinaryLoader } from '@/utils/cloudinaryLoader';
+const imageLoader = cloudinaryLoader;
 
 const Advertisements = () => {
-  const [ads, setAds] = useState<any[]>([]);
+  const [ads, setAds] = useState<Advertisement[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAd, setSelectedAd] = useState<any>(null);
+  const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/advertisements')
       .then(res => res.json())
-      .then(data => {
-        // Filtramos solo los activos
-        const activeAds = data.filter((a: any) => a.is_active);
+      .then((data: unknown) => {
+        const arr = Array.isArray(data) ? (data as Advertisement[]) : [];
+        const activeAds = arr.filter((a) => Boolean(a.is_active));
         setAds(activeAds);
       })
       .catch(err => console.error("Error:", err));
@@ -103,7 +105,7 @@ const Advertisements = () => {
               <Image
                 loader={imageLoader}
                 src={selectedAd.image_url || 'https://via.placeholder.com/600x400?text=No+Image'}
-                alt={selectedAd.title}
+                alt={selectedAd.title || ''}
                 width={600}
                 height={240}
                 className="w-full h-full object-cover"
@@ -116,7 +118,7 @@ const Advertisements = () => {
               {/* Descripción (Contenido enriquecido) */}
               <div 
                 className="text-gray-600 text-sm mb-6 leading-relaxed max-h-40 overflow-y-auto pr-2"
-                dangerouslySetInnerHTML={{ __html: selectedAd.content || selectedAd.description }}
+                dangerouslySetInnerHTML={{ __html: String(selectedAd.content || selectedAd.description || '') }}
               />
               
               {selectedAd.link_url && (

@@ -1,14 +1,16 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { cloudinaryLoader } from '@/utils/cloudinaryLoader';
+import type { Alliance } from '@/types/api';
 
 const Alliances = () => {
-  const [alliances, setAlliances] = useState<any[]>([]);
+  const [alliances, setAlliances] = useState<Alliance[]>([]);
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/alliances')
       .then(res => res.json())
-      .then(data => setAlliances(data))
+      .then((data: unknown) => setAlliances(Array.isArray(data) ? (data as Alliance[]) : []))
       .catch(err => console.error("Error cargando alianzas:", err));
   }, []);
 
@@ -24,19 +26,25 @@ const Alliances = () => {
         
         <div className="flex flex-wrap justify-center items-center gap-12">
           {alliances.map((alliance) => (
-            <a
-              key={alliance.id}
-              href={alliance.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="grayscale hover:grayscale-0 transition duration-300"
-            >
-              <img
-                src={alliance.logo_url}
-                alt={alliance.name}
-                className="h-16 w-auto object-contain"
-              />
-            </a>
+            alliance.logo_url && (
+              <a
+                key={alliance.id}
+                href={alliance.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="grayscale hover:grayscale-0 transition duration-300"
+              >
+                <Image
+                  loader={cloudinaryLoader}
+                  src={alliance.logo_url}
+                  alt={alliance.name || 'alliance'}
+                  width={160}
+                  height={64}
+                  className="object-contain"
+                  unoptimized={false}
+                />
+              </a>
+            )
           ))}
         </div>
       </div>

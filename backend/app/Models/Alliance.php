@@ -32,4 +32,14 @@ class Alliance extends Model
     {
         return $this->belongsTo(Media::class, 'logo');
     }
+
+    // Accessor para obtener la URL del logo desde Curator/Cloudinary
+    public function getLogoUrlAttribute()
+    {
+        if (!$this->logo) {
+            return null;
+        }
+        $media = Media::find($this->logo);
+        return $media ? $media->url : null;
+    }
 }
