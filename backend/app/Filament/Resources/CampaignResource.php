@@ -41,9 +41,9 @@ class CampaignResource extends Resource
                     ->required(),
                 Forms\Components\Textarea::make('description')
                     ->columnSpanFull(),
-                Forms\Components\Select::make('currency_id')
-                    ->relationship('currency', 'iso_code')
-                    ->required(),
+                Forms\Components\Hidden::make('currency_id')
+                    ->default(2),
+
                 Forms\Components\TextInput::make('monetary_goal')
                     ->numeric()
                     ->required(),

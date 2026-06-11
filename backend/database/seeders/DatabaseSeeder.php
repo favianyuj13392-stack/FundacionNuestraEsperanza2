@@ -25,5 +25,12 @@ class DatabaseSeeder extends Seeder
             AdvertisementSeeder::class,
             DataImportSeeder::class,
         ]);
+
+        // Asegurar la existencia de monedas básicas
+        \Illuminate\Support\Facades\DB::table('currencies')->insertOrIgnore([
+            ['id' => 1, 'name' => 'Dólar Estadounidense', 'iso_code' => 'USD', 'symbol' => '$'],
+            ['id' => 2, 'name' => 'Boliviano', 'iso_code' => 'BOB', 'symbol' => 'Bs.'],
+        ]);
     }
 }
+
