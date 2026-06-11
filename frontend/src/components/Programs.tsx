@@ -55,7 +55,9 @@ const Programs = () => {
   };
 
   return (
-    <section id="programs" className="bg-celeste-claro py-16">
+    <section id="programs" className="relative py-16 bg-gradient-to-br from-celeste-claro via-beige-claro to-rosa-claro overflow-hidden">
+      <div className="absolute left-0 top-10 h-40 w-40 rounded-full bg-rosa-principal/20 blur-3xl"></div>
+      <div className="absolute right-0 top-24 h-56 w-56 rounded-full bg-turquesa-secundario/20 blur-3xl"></div>
       <div className="container mx-auto px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-black mb-12 text-center font-title">
           NUESTROS PROGRAMAS
@@ -67,7 +69,7 @@ const Programs = () => {
               <div key={program.id} className="px-4 h-full">
                 <motion.div
                   whileHover={{ y: -10 }}
-                  className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col h-full mx-2"
+                  className="bg-white/95 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-full mx-2 border border-rosa-principal/10"
                 >
                   <div className={`w-full h-3 ${program.color || 'bg-blue-500'}`}></div>
                   <div className="relative w-full h-48 overflow-hidden">

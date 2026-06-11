@@ -17,7 +17,7 @@ use Filament\Tables\Columns\ToggleColumn;
 class ContactMessageResource extends Resource
 {
     protected static ?string $model = ContactMessage::class;
-
+    protected static ?string $navigationGroup = 'Interaction';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -70,7 +70,7 @@ class ContactMessageResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\Action::make('reply')
-                    ->label('Responder')
+                    ->label('Reply')
                     ->icon('heroicon-o-envelope')
                     ->url(fn (ContactMessage $record) => "mailto:{$record->email}?subject=Respuesta a su mensaje - Fundación Nuestra Esperanza")
                     ->openUrlInNewTab(),    

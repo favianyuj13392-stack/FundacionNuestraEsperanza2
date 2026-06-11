@@ -23,10 +23,13 @@ const HowToHelp: React.FC<HowToHelpProps> = ({ onOpenDonationModal }) => {
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=Hola,%20quisiera%20ser%20voluntario%20de%20la%20fundación.`;
 
   return (
-    <section ref={targetRef} id="como-ayudar" className="relative py-20 bg-white min-h-[80vh] overflow-hidden flex items-center">
+    <section ref={targetRef} id="como-ayudar" className="relative py-20 bg-gradient-to-br from-azul-marino via-turquesa-secundario to-celeste-claro min-h-[80vh] overflow-hidden flex items-center text-white">
       <motion.div className="absolute inset-0 z-0" style={{ y }}>
         <Image src="/IMG/ayudar.png" alt="Niños sonriendo" layout="fill" objectFit="cover" quality={85} />
       </motion.div>
+      <div className="absolute inset-0 bg-black/45"></div>
+      <div className="absolute left-10 top-10 h-32 w-32 rounded-full bg-rosa-principal/15 blur-3xl"></div>
+      <div className="absolute right-10 bottom-10 h-40 w-40 rounded-full bg-amarillo-detalle/20 blur-3xl"></div>
 
       <div className="container mx-auto px-6 relative z-10 h-full flex flex-col justify-center">
         <motion.h2

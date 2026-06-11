@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Response;
 class SubscriberResource extends Resource
 {
     protected static ?string $model = Subscriber::class;
-
+    protected static ?string $navigationGroup = 'Interaction';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

@@ -46,7 +46,9 @@ const Suscribe = () => {
   };
 
   return (
-    <section className="bg-beige-claro py-16 text-black">
+    <section className="relative py-16 bg-gradient-to-br from-rosa-claro/60 via-beige-claro to-celeste-claro text-black overflow-hidden">
+      <div className="absolute left-0 top-10 h-40 w-40 rounded-full bg-verde-lima/20 blur-3xl"></div>
+      <div className="absolute right-0 top-24 h-56 w-56 rounded-full bg-turquesa-secundario/20 blur-3xl"></div>
       <div className="container mx-auto px-6 text-center">
         
         <h2 className="text-3xl font-bold mb-4 font-title">Suscríbete</h2>

@@ -1,7 +1,23 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { resolveImageUrl } from '@/utils/imageUrl';
+
+interface NavLink {
+  title: string;
+  url: string;
+  location?: string;
+}
+
+interface FooterSettings {
+  global_logo?: string;
+  footer_about_text?: string;
+  social_facebook?: string;
+  social_instagram?: string;
+  social_tiktok?: string;
+  [key: string]: unknown;
+}
 
 // 1. DEFINIMOS QUÉ RECIBE EL COMPONENTE (La "puerta de entrada")
 interface FooterProps {
@@ -15,7 +31,28 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
   // --- Lógica de Suscripción (Integrada aquí también) ---
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
+  const API_URL = 'http://127.0.0.1:8000/api';
+  const [settings, setSettings] = useState<FooterSettings | null>(null);
+  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
+
+  useEffect(() => {
+    //Cargar settings
+    fetch(`${API_URL}/settings`)
+      .then(res => res.json())
+      .then(data => setSettings(data))
+      .catch(err => console.error("Error cargando settings en Footer:", err));
+    //Cargar enlaces del menú
+    fetch(`${API_URL}/nav-links`)
+      .then(res => res.json())
+      .then(data => {
+        // Filtramos solo los links que deben ir en el footer (o en ambos)
+        const footerLinks = data.filter((link: NavLink) => link.location === 'footer' || link.location === 'both');
+        setNavLinks(footerLinks);
+      })
+      .catch(err => console.error("Error cargando nav-links en Footer:", err));
+  }, []);
+  // Preparamos la URL del logo para el footer
+  const footerLogoUrl = resolveImageUrl(settings?.global_logo, "/IMG/Logo.jpg");
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,12 +71,21 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
         setStatus('error');
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error al suscribirse:", error);
       setStatus('error');
+      setTimeout(() => setStatus('idle'), 3000);
     }
   };
   // -----------------------------------------------------
-
+  // Enlaces por defecto en caso de que Filament esté vacío por ahora
+  const defaultLinks = [
+    { title: "Inicio", url: "/" },/*
+    { title: "Quiénes Somos", url: "/quienes-somos" },
+    { title: "Programas", url: "/programas" },
+    { title: "Cómo Ayudar", url: "/como-ayudar" },
+    { title: "Noticias", url: "/news" },*/
+  ];
+  const linksToDisplay = navLinks.length > 0 ? navLinks : defaultLinks;
   // Enlace de WhatsApp para Voluntarios
   const phoneNumber = "59170112236"; 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=Hola,%20quisiera%20ser%20voluntario%20de%20la%20fundación.`;
@@ -51,8 +97,10 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
           
           {/* Logo */}
           <div className="flex items-center sm:col-span-2 lg:col-span-1 justify-center lg:justify-start">
-            <div className="relative w-48 h-48">
-                <Image src="/IMG/Logo.jpg" alt='Logo Fundación' fill className="object-contain rounded-lg"/>
+            <div className="relative w-60 h-60">
+                {settings?.global_logo && (
+                  <Image src={footerLogoUrl} alt="Logo" width={200} height={200} className=" object-contain" />
+                )}
             </div>
           </div>
           
@@ -60,19 +108,25 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
           <div className="sm:col-span-2 lg:col-span-1">
             <h3 className="font-bold mb-4 font-title text-xl">FUNDACIÓN NUESTRA ESPERANZA</h3>
             <p className="text-gray-300 text-sm mb-4 font-sans leading-relaxed">
-              Haciendo una diferencia en la vida de los niños que padecen de cáncer en toda Bolivia.
+              {settings?.footer_about_text || 'Haciendo una diferencia en la vida de los niños que padecen de cáncer en toda Bolivia.'}
             </p>
             {/* Redes Sociales */}
             <div className="flex space-x-4">
-              <a href="https://www.facebook.com/NuestraEsperanzaBo/?locale=es_LA" target="_blank" rel="noreferrer" className="hover:scale-110 transition-transform">
-                <Image src="/IMG/ic_facebook.png" alt='Facebook' width={30} height={30} className="bg-white rounded-full p-1" />
-              </a>
-              <a href="https://www.tiktok.com/@fund.nuestra.esperanza" target="_blank" rel="noreferrer" className="hover:scale-110 transition-transform">
-                <Image src="/IMG/ic_tiktok.png" alt='TikTok' width={30} height={30} className="bg-white rounded-full p-1" />
-              </a>
-              <a href="https://www.instagram.com/fundacionnuestraesperanza" target="_blank" rel="noreferrer" className="hover:scale-110 transition-transform">
-                <Image src="/IMG/ic_instagram.png" alt='Instagram' width={30} height={30} className="bg-white rounded-full p-1" />
-              </a>
+              {settings?.social_facebook && (
+                <a href={settings.social_facebook} target="_blank" rel="noreferrer" className="hover:scale-110 transition-transform">
+                  <Image src="/IMG/ic_facebook.png" alt='Facebook' width={30} height={30} className="bg-white rounded-full p-1" />
+                </a>
+              )}
+              {settings?.social_instagram && (
+                <a href={settings.social_instagram} target="_blank" rel="noreferrer" className="hover:scale-110 transition-transform">
+                  <Image src="/IMG/ic_instagram.png" alt='Instagram' width={30} height={30} className="bg-white rounded-full p-1" />
+                </a>
+              )}
+              {settings?.social_tiktok && (
+                <a href={settings.social_tiktok} target="_blank" rel="noreferrer" className="hover:scale-110 transition-transform">
+                  <Image src="/IMG/ic_tiktok.png" alt='TikTok' width={30} height={30} className="bg-white rounded-full p-1" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -80,12 +134,13 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
           <div>
             <h4 className="font-bold mb-4 text-lg">Menú Rápido</h4>
             <ul className="space-y-2 text-sm font-sans">
-              <li><Link href="/" className="hover:text-rosa-principal transition duration-300">Inicio</Link></li>
-              <li><Link href="/quienes-somos" className="hover:text-rosa-principal transition duration-300">Quiénes Somos</Link></li>
-              <li><Link href="/programas" className="hover:text-rosa-principal transition duration-300">Programas</Link></li>
-              <li><Link href="/como-ayudar" className="hover:text-rosa-principal transition duration-300">Cómo Ayudar</Link></li>
-              <li><Link href="/testimonials" className="hover:text-rosa-principal transition duration-300">Testimonios</Link></li>
-              <li><Link href="/news" className="hover:text-rosa-principal transition duration-300">Noticias</Link></li>
+              {linksToDisplay.map((link, index) => (
+                <li key={index}>
+                  <Link href={link.url} className="hover:text-rosa-principal text-white transition duration-300 font-sans">
+                    {link.title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

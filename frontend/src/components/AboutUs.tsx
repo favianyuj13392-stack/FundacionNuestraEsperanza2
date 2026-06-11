@@ -6,14 +6,17 @@ import Link from 'next/dist/client/link';
 
 const AboutUs = () => {
   return (
-    <section className="mx-auto px-2 py-16">
+    <section className="relative overflow-hidden py-16 bg-amarillo-claro/20">
+      <div className="absolute -left-10 top-10 h-56 w-56 rounded-full bg-rosa-principal/20 blur-3xl"></div>
+      <div className="absolute right-0 top-24 h-72 w-72 rounded-full bg-turquesa-secundario/15 blur-3xl"></div>
+      <div className="absolute left-1/2 bottom-0 h-64 w-64 -translate-x-1/2 rounded-full bg-azul-marino/10 blur-3xl"></div>
       <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center p-6 md:p-10">
         <motion.div
           initial={{ opacity: 0, x: -100 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: false, amount: 0.3 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="order-2 md:order-1"
+          className="order-2 md:order-1 bg-white/90 rounded-[2rem] p-8 shadow-2xl backdrop-blur-sm"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-black mb-4 font-title">QUIÉNES SOMOS</h2>
           <div className="bg-rosa-principal w-20 h-2 mb-5"></div>
@@ -28,7 +31,7 @@ const AboutUs = () => {
             </Link>
           </div>
         </motion.div>
-        <div data-aos="fade-left" className="relative w-full h-80 md:h-96 rounded-lg shadow-lg overflow-hidden order-1 md:order-2">
+        <div data-aos="fade-left" className="relative w-full h-80 md:h-96 rounded-[2rem] shadow-2xl overflow-hidden order-1 md:order-2 border border-white/50">
           <motion.div
             className="absolute inset-0"
             initial={{ scale: 1.2 }}

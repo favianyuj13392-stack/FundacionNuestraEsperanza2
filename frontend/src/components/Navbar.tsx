@@ -1,44 +1,81 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { resolveImageUrl } from '@/utils/imageUrl';
+
+interface NavLink {
+  id?: number;
+  title: string;
+  url: string;
+  location?: string;
+}
 
 interface NavbarProps {
   onOpenDonationModal?: () => void; // Función para abrir el modal (opcional)
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
+  const [logoUrl, setLogoUrl] = useState("/IMG/Logo.jpg");
+  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout, isLoading } = useAuth();
-  const navLinks = [
+  const API_BASE_URL = 'http://127.0.0.1:8000';
+  /*const navLinks = [
     { name: "Inicio", path: "/" },
     { name: "Quiénes Somos", path: "/quienes-somos" },
     { name: "Programas", path: "/programas" },
     { name: "Cómo Ayudar", path: "/como-ayudar" },
     { name: "Testimonios", path: "/testimonials" },
     { name: "Noticias", path: "/news" },
-    { name: "Campañas", path: "/campanas" },
-  ];
-
+    { name: "Contacto", path: "/#contacto" },
+  ];*/
+  useEffect(() => {
+    //1. Cargar el logo
+    fetch(`${API_BASE_URL}/api/settings`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.global_logo) {
+          setLogoUrl(resolveImageUrl(data.global_logo));
+        }
+      })
+      .catch(err => console.error("Error al cargar el logo en Navbar:", err));
+    // 2. Cargar NavLinks desde la API
+    fetch(`${API_BASE_URL}/api/nav-links`)
+      .then(res => res.json())
+      .then(data => {
+        // Filtramos solo los que deben ir en el header o en ambos
+        const headerLinks = data.filter((link: NavLink) => 
+          link.location === 'header' || link.location === 'both'
+        );
+        setNavLinks(headerLinks);
+      })
+      .catch(err => console.error("Error cargando nav links:", err));
+  }, []);
   return (
     <header className="bg-azul-marino shadow-md sticky top-0 z-50 font-sans text-base">
       <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="flex-shrink-0">
-          <Image
-            src="/IMG/Logo.jpg"
-            alt="Fundación Nuestra Esperanza"
-            width={150}
-            height={45}
-            className="cursor-pointer"
+        <Link href="/">
+          <Image 
+            src={logoUrl} 
+            alt="Fundación Nuestra Esperanza" 
+            width={150} // Ajusta según tu diseño
+            height={60} 
+            className="object-contain"
+            priority
           />
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center space-x-3 xl:space-x-6 text-sm xl:text-base">
+        <div className="hidden lg:flex items-center space-x-7">
           {navLinks.map((link) => (
-            <Link key={link.name} href={link.path} className="text-white hover:text-rosa-principal transition duration-300 whitespace-nowrap">
-              {link.name}
+            <Link 
+              key={link.id} 
+              href={link.url} 
+              className="hover:text-rosa-principal  text-white transition duration-300 font-sans"
+            >
+              {link.title}
             </Link>
           ))}
 
@@ -56,7 +93,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
                   window.location.href = '/';
                   setTimeout(() => logout(), 100);
                 }}
-                className="text-white border border-white rounded-full px-4 py-1.5 hover:bg-white hover:text-azul-marino transition duration-300 font-button"
+                className="text-white border border-white rounded-full px-6 py-2 hover:bg-white hover:text-azul-marino transition duration-300 font-button"
               >
                 Salir
               </button>
@@ -67,7 +104,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
               <Link href="/login" className="text-white border border-white rounded-full px-6 py-2 hover:bg-white hover:text-azul-marino transition duration-300 font-button">
                 Login
               </Link>
-              <Link href="/registro" className="text-white border border-white rounded-full px-6 py-2 hover:bg-white hover:text-azul-marino transition duration-300 font-button">
+              <Link href="/registro" className="text-white hover:text-rosa-principal transition duration-300">
                 Registro
               </Link>
             </>
@@ -75,7 +112,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
 
           <button
             onClick={onOpenDonationModal}
-            className="bg-rosa-principal text-white px-5 py-1.5 rounded-full font-bold hover:bg-amarillo-detalle transition duration-300 font-button"
+            className="bg-rosa-principal text-white px-6 py-2 rounded-full font-bold hover:bg-amarillo-detalle transition duration-300 font-button"
           >
             DONAR
           </button>
@@ -96,8 +133,8 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
         <div className="lg:hidden bg-azul-marino">
           <div className="flex flex-col items-center py-4 space-y-4">
             {navLinks.map((link) => (
-              <Link key={link.name} href={link.path} className="text-white hover:text-rosa-principal transition duration-300" onClick={() => setIsMenuOpen(false)}>
-                {link.name}
+              <Link key={link.id} href={link.url} className="text-lg text-white hover:text-rosa-principal transition duration-300" onClick={() => setIsMenuOpen(false)}>
+                {link.title}
               </Link>
             ))}
 

@@ -2,24 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { resolveImageUrl } from '@/utils/imageUrl';
 
 // --- 1. CONFIGURACIÓN DE URL DEL BACKEND (Igual que en Programs) ---
 // Define aquí la dirección de tu backend Laravel.
 const LARAVEL_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'; 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api'; 
-
-// --- 2. FUNCIÓN HELPER PARA IMÁGENES (Igual que en Programs) ---
-const getImageUrl = (imagePath: string | null) => {
-    if (!imagePath) return '/placeholder-image.jpg'; // Imagen por defecto si es null
-
-    // Si la ruta ya es una URL completa (ej: http://...), la devolvemos tal cual
-    if (imagePath.startsWith('http')) {
-        return imagePath;
-    }
-
-    // Si la ruta es relativa (ej: "testimonials/foto.jpg"), le añadimos el dominio
-    return `${LARAVEL_BASE_URL}/storage/${imagePath}`;
-};
 
 // Interfaz alineada con tu API y BD
 interface TestimonialItem {
@@ -114,7 +102,9 @@ const TestimonialsSection = () => {
 
   // --- RENDERIZADO ---
   return (
-    <section className="py-16 md:py-20 bg-gray-50">
+    <section className="relative py-16 md:py-20 bg-gradient-to-br from-celeste-claro to-white overflow-hidden">
+      <div className="absolute -left-16 top-16 h-48 w-48 rounded-full bg-rosa-principal/20 blur-3xl"></div>
+      <div className="absolute right-0 top-24 h-64 w-64 rounded-full bg-turquesa-secundario/15 blur-3xl"></div>
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-black mb-2 font-title"> TESTIMONIOS </h2>
@@ -140,7 +130,7 @@ const TestimonialsSection = () => {
                 {/* --- 3. APLICACIÓN DE LA SOLUCIÓN DE IMAGEN --- */}
                 <Image
                   // Usamos la función helper aquí
-                  src={getImageUrl(testimonial.image)}
+                  src={resolveImageUrl(testimonial.image)}
                   alt={`Foto de ${testimonial.name}`}
                   layout="fill"
                   objectFit="cover"

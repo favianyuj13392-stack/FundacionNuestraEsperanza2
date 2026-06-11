@@ -51,7 +51,9 @@ const News = () => {
   };
 
   return (
-    <section id="noticias" className="bg-white py-16">
+    <section id="noticias" className="relative py-16 bg-gradient-to-br from-rosa-claro/40 via-white to-celeste-claro/60 overflow-hidden">
+      <div className="absolute left-0 top-10 h-40 w-40 rounded-full bg-amarillo-detalle/20 blur-3xl"></div>
+      <div className="absolute right-0 bottom-10 h-56 w-56 rounded-full bg-turquesa-secundario/20 blur-3xl"></div>
       <div className="container mx-auto px-6">
         
         {/* Título de la Sección */}

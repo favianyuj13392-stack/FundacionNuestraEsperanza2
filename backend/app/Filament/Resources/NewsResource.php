@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class NewsResource extends Resource
 {
     protected static ?string $model = News::class;
-
+    protected static ?string $navigationGroup = 'Web Content';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -31,7 +31,7 @@ class NewsResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('image')
                     ->image()
-                    ->disk('public')
+                    ->disk('cloudinary')
                     ->directory('news') 
                     ->imageResizeMode('cover') 
                     ->imageResizeTargetWidth('1080') // Redimensiona a 1080px de ancho máximo
@@ -50,7 +50,8 @@ class NewsResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
-                Tables\Columns\ImageColumn::make('image'),
+                Tables\Columns\ImageColumn::make('image')
+                    ->disk('cloudinary'),
                 Tables\Columns\TextColumn::make('publication_date')
                     ->date()
                     ->sortable(),
