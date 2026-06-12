@@ -64,6 +64,7 @@ return [
             'api_key' => env('CLOUDINARY_API_KEY'),
             'api_secret' => env('CLOUDINARY_API_SECRET'),
             'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+            'url'          => env('CLOUDINARY_URL', 'https://res.cloudinary.com/' . env('CLOUDINARY_CLOUD_NAME') . '/image/upload'),
         ],
     ],
 
