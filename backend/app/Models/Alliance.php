@@ -32,4 +32,9 @@ class Alliance extends Model
     {
         return $this->belongsTo(Media::class, 'logo');
     }
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->media ? $this->media->url : null;
+    }
 }

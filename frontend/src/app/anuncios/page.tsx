@@ -135,7 +135,7 @@ export default function AnnouncementsPage() {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: "0px" }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           {paginatedAds.map((ad: any, index) => (
@@ -151,15 +151,22 @@ export default function AnnouncementsPage() {
               <div className="relative h-full bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-rosa-principal/10 hover:border-rosa-principal/40">
                 
                 {/* Imagen con overlay */}
-                <div className="relative h-56 overflow-hidden bg-gradient-to-br from-celeste-fondo to-azul-marino">
-                  <Image
-                    loader={imageLoader}
-                    src={ad.image_url || 'https://via.placeholder.com/400x300?text=Anuncio'}
-                    alt={ad.title}
-                    fill
-                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
-                    unoptimized
-                  />
+                <div className="relative h-56 overflow-hidden bg-gradient-to-br from-celeste-fondo to-azul-marino flex items-center justify-center">
+                  {ad.image_url ? (
+                    <Image
+                      loader={imageLoader}
+                      src={ad.image_url}
+                      alt={ad.title}
+                      fill
+                      className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-white/50">
+                      <Sparkles size={40} className="mb-2 opacity-50" />
+                      <span className="font-sans text-sm font-semibold">Sin imagen</span>
+                    </div>
+                  )}
                   
                   {/* Overlay gradiente */}
                   <div className="absolute inset-0 bg-gradient-to-t from-azul-marino/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -182,7 +189,7 @@ export default function AnnouncementsPage() {
                 </div>
 
                 {/* Contenido */}
-                <div className="p-6 flex flex-col h-full">
+                <div className="p-6 flex flex-col h-full bg-white relative z-10">
                   <div className="flex-1">
                     <motion.h2 
                       initial={{ opacity: 0 }}
@@ -203,36 +210,14 @@ export default function AnnouncementsPage() {
                   <motion.button
                     type="button"
                     whileHover={{ x: 5 }}
-                    className="inline-flex items-center justify-center gap-2 w-full bg-gradient-to-r from-rosa-principal to-turquesa-secundario text-white font-bold py-3 rounded-xl hover:shadow-lg transition-all duration-300 hover:from-turquesa-secundario hover:to-rosa-principal"
+                    className="inline-flex items-center justify-center gap-2 w-full bg-gradient-to-r from-rosa-principal to-turquesa-secundario text-white font-bold py-3 rounded-xl hover:shadow-lg transition-all duration-300 hover:from-turquesa-secundario hover:to-rosa-principal mt-auto"
                     onClick={(e) => { e.stopPropagation(); setSelectedAd(ad); }}
                   >
                     <span>Más detalles</span>
                     <ExternalLink size={18} />
                   </motion.button>
                 </div>
-
-                {/* Borde animado en hover */}
-                <motion.div 
-                  className="absolute inset-0 rounded-2xl pointer-events-none border-2 border-transparent"
-                  style={{
-                    backgroundImage: hoveredId === ad.id
-                      ? 'linear-gradient(90deg, #FF5087, #00C1CA, #FF5087)'
-                      : 'none',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: '0% 0%',
-                    backgroundSize: hoveredId === ad.id ? '200% 200%' : '100% 100%',
-                  }}
-                  animate={hoveredId === ad.id ? { backgroundPosition: ['0% 0%', '100% 100%'] } : {}}
-                  transition={{ duration: 2, repeat: Infinity }}
-                ></motion.div>
               </div>
-
-              {/* Glow effect de fondo */}
-              <motion.div
-                className="absolute -inset-1 bg-gradient-to-r from-rosa-principal/20 via-turquesa-secundario/20 to-rosa-principal/20 rounded-2xl -z-10 blur-2xl"
-                animate={hoveredId === ad.id ? { opacity: 1 } : { opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              ></motion.div>
             </motion.div>
           ))}
         </motion.div>
@@ -315,17 +300,24 @@ export default function AnnouncementsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="h-80 w-full relative bg-gradient-to-br from-celeste-fondo to-turquesa-secundario overflow-hidden"
+              className="h-80 w-full relative bg-gradient-to-br from-celeste-fondo to-turquesa-secundario overflow-hidden flex items-center justify-center"
             >
-              <Image
-                loader={imageLoader}
-                src={selectedAd.image_url || 'https://via.placeholder.com/800x400?text=Anuncio'}
-                alt={selectedAd.title}
-                fill
-                className="w-full h-full object-cover"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+              {selectedAd.image_url ? (
+                <Image
+                  loader={imageLoader}
+                  src={selectedAd.image_url}
+                  alt={selectedAd.title}
+                  fill
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-white/50 z-10">
+                  <Sparkles size={60} className="mb-4 opacity-50" />
+                  <span className="font-sans text-xl font-semibold">Sin imagen</span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
             </motion.div>
 
             {/* Contenido */}

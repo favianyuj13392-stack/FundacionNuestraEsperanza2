@@ -37,15 +37,22 @@ const ProgramModal: React.FC<ProgramModalProps> = ({ program, isOpen, onClose })
           className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-5xl flex flex-col md:flex-row max-h-[90vh]"
         >
           {/* LADO IZQUIERDO: IMAGEN (45% del ancho) */}
-          <div className="w-full md:w-[45%] relative h-64 md:h-auto bg-gray-200">
-            <Image
-              src={program.image}
-              alt={program.title}
-              fill
-              className="object-cover"
-            />
+          <div className="w-full md:w-[45%] relative h-64 md:h-auto bg-gradient-to-br from-celeste-fondo to-azul-marino flex items-center justify-center">
+            {program.image ? (
+                <Image
+                  src={program.image}
+                  alt={program.title}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+            ) : (
+                <div className="text-white/50 flex flex-col items-center justify-center h-full">
+                    <span className="font-semibold font-sans mt-2 text-xl">Sin imagen</span>
+                </div>
+            )}
             {/* Franja de color decorativa */}
-            <div className={`absolute top-0 left-0 w-full h-2 ${program.color || 'bg-rosa-principal'}`}></div>
+            <div className={`absolute top-0 left-0 w-full h-2 z-10 ${program.color || 'bg-rosa-principal'}`}></div>
           </div>
 
           {/* LADO DERECHO: CONTENIDO (55% del ancho) */}

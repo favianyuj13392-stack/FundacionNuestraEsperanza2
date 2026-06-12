@@ -29,12 +29,15 @@ class HomeSection extends Model
             return $this->image;
         }
 
-        if (Storage::disk('cloudinary')->exists($this->image)) {
-            return Storage::disk('cloudinary')->url($this->image);
+        if (Storage::disk('public')->exists($this->image)) {
+            return asset('storage/' . ltrim($this->image, '/'));
         }
 
-        return Storage::disk('public')->exists($this->image)
-            ? asset('storage/' . ltrim($this->image, '/'))
-            : null;
+                try {
+            return Storage::disk('cloudinary')->url($this->image);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }
+

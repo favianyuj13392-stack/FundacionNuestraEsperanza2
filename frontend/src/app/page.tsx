@@ -75,9 +75,8 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen">
-      <Advertisements />
       <Navbar onOpenDonationModal={openModal} />
-      <div className="h-[100px]"></div> {/* Espaciador para el Advertisement fijo */}
+      <Advertisements />
       
       {loading ? (
         <div className="flex justify-center items-center h-64">

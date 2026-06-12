@@ -55,7 +55,7 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
   }, []);
   return (
     <header className="bg-azul-marino shadow-md sticky top-0 z-50 font-sans text-base">
-      <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
+      <nav className="container mx-auto px-6 py-2 flex justify-between items-center">
         <Link href="/">
           <Image 
             src={logoUrl} 

@@ -38,4 +38,14 @@ return [
     'donaciones' => [
         'monto_minimo_certificado' => env('DONATION_CERT_MIN_AMOUNT', 100),
     ],
+
+    'bnb' => [
+        'account_id' => env('BNB_ACCOUNT_ID'),
+        'authorization_id' => env('BNB_AUTH_ID'),
+        'dom_account_id' => env('BNB_DOM_ACCOUNT_ID'),
+        'dom_authorization_id' => env('BNB_DOM_AUTHORIZATION_ID'),
+        'auth_url' => env('BNB_AUTH_URL', 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1'),
+        'qr_url' => env('BNB_QR_URL', 'http://test.bnb.com.bo/QRSimple.API/api/v1'),
+        'dom_url' => env('BNB_DOM_URL', 'http://test.bnb.com.bo/DirectDebit/api'),
+    ],
 ];

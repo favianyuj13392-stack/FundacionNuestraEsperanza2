@@ -17,11 +17,10 @@ class BnbDonationService
 
     public function __construct()
     {
-        // Base URIs from Spec
-        $this->baseUrlAuth = 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1';
-        // CRITICAL: Use BNB official endpoint, NOT Azure  
-        $this->baseUrlSimple = 'http://test.bnb.com.bo/QRSimple.API/api/v1';
-        $this->baseUrlVariable = 'http://test.bnb.com.bo/DirectDebit/api';
+        // Base URIs from Config (fallback to test server)
+        $this->baseUrlAuth = config('services.bnb.auth_url', 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1');
+        $this->baseUrlSimple = config('services.bnb.qr_url', 'http://test.bnb.com.bo/QRSimple.API/api/v1');
+        $this->baseUrlVariable = config('services.bnb.dom_url', 'http://test.bnb.com.bo/DirectDebit/api');
 
         // Load values from config file.  When `config:cache` is used this
         // ensures we don't accidentally read stale or missing environment data.

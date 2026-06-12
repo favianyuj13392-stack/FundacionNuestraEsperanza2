@@ -49,8 +49,8 @@ export default function TransparenciaDetailPage() {
                 <div className="flex-grow flex flex-col justify-center items-center text-center px-6">
                     <h1 className="text-3xl font-bold text-azul-marino mb-4">Campaña no encontrada</h1>
                     <p className="text-gray-600 mb-8">No pudimos cargar los detalles de transparencia para esta campaña.</p>
-                    <Link href="/transparencia" className="bg-rosa-principal text-white px-6 py-3 rounded-full font-bold hover:bg-opacity-90">
-                        Volver a Transparencia
+                    <Link href="/campanas" className="bg-rosa-principal text-white px-6 py-3 rounded-full font-bold hover:bg-opacity-90">
+                        Volver a Campañas
                     </Link>
                 </div>
                 <Footer />
@@ -65,8 +65,8 @@ export default function TransparenciaDetailPage() {
             {/* Header / Metadatos */}
             <section className="bg-azul-marino text-white py-16 px-6 mt-16">
                 <div className="container mx-auto max-w-5xl">
-                    <Link href="/transparencia" className="text-turquesa-secundario hover:underline text-sm mb-4 inline-block font-bold">
-                        &larr; Volver a Transparencia
+                    <Link href="/campanas" className="text-turquesa-secundario hover:underline text-sm mb-4 inline-block font-bold">
+                        &larr; Volver a Campañas
                     </Link>
                     <motion.h1 
                         initial={{ opacity: 0, y: -10 }}

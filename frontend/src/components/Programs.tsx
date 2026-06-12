@@ -72,8 +72,14 @@ const Programs = () => {
                   className="bg-white/95 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-full mx-2 border border-rosa-principal/10"
                 >
                   <div className={`w-full h-3 ${program.color || 'bg-blue-500'}`}></div>
-                  <div className="relative w-full h-48 overflow-hidden">
-                    <Image src={program.image} alt={program.title} layout="fill" objectFit="cover" />
+                  <div className="relative w-full h-48 overflow-hidden bg-gradient-to-br from-celeste-fondo to-azul-marino flex items-center justify-center">
+                    {program.image ? (
+                        <Image src={program.image} alt={program.title} layout="fill" objectFit="cover" unoptimized />
+                    ) : (
+                        <div className="text-white/50 flex flex-col items-center">
+                            <span className="font-semibold font-sans mt-2">Sin imagen</span>
+                        </div>
+                    )}
                   </div>
                   <div className="p-6 flex flex-col flex-grow">
                     <h4 className="text-2xl font-bold text-black mb-4 font-title line-clamp-1">{program.title}</h4>

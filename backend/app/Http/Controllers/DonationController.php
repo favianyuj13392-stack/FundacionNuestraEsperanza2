@@ -20,7 +20,7 @@ class DonationController extends Controller
 
         // Check if the user has a Donor profile
         if (!$user || !$user->donor) {
-            return response()->json(['message' => 'No donor profile found for this user.'], 404);
+            return response()->json([], 200);
         }
 
         $donor = $user->donor;

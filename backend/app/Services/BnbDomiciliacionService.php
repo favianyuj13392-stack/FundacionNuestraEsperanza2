@@ -22,23 +22,18 @@ use Illuminate\Support\Facades\Log;
  */
 class BnbDomiciliacionService
 {
-    // Base URL del módulo de Domiciliación del BNB (según documentación oficial)
-    private const BASE_URL = 'http://test.bnb.com.bo/DirectDebit/api/Services';
-
     // Tiempo de espera máximo (segundos) para las llamadas al banco
     private const TIMEOUT         = 30;
     private const CONNECT_TIMEOUT = 10;
 
-    private BnbDonationService $auth;
+    private string $baseUrl;
+    private string $authUrl;
     private string $serviceCode;
 
-    /**
-     * Inyectamos BnbDonationService para reutilizar authenticate() y el
-     * cache del token. No duplicamos credenciales ni lógica de SSL.
-     */
-    public function __construct(BnbDonationService $auth)
+    public function __construct()
     {
-        $this->auth        = $auth;
+        $this->baseUrl = config('services.bnb.dom_url', 'http://test.bnb.com.bo/DirectDebit/api') . '/Services';
+        $this->authUrl = config('services.bnb.auth_url', 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1') . '/auth/Token';
         $this->serviceCode = trim((string) config('bnb.service_code', ''));
     }
 
@@ -59,7 +54,7 @@ class BnbDomiciliacionService
      */
     public function syncClient(BnbClient $client): array
     {
-        $url = self::BASE_URL . '/UpdateRecord';
+        $url = $this->baseUrl . '/UpdateRecord';
 
         Log::info('BNB Domiciliacion: syncClient iniciado', [
             'client_id'  => $client->id,
@@ -181,7 +176,7 @@ class BnbDomiciliacionService
      */
     public function createSubscriptionQr(BnbSubscription $subscription, BnbClient $client): array
     {
-        $url = self::BASE_URL . '/GetQRVariableAmount';
+        $url = $this->baseUrl . '/GetQRVariableAmount';
 
         Log::info('BNB Domiciliacion: createSubscriptionQr iniciado', [
             'subscription_id'   => $subscription->id,
@@ -298,11 +293,45 @@ class BnbDomiciliacionService
     // =========================================================================
 
     /**
-     * Obtiene el Bearer Token reutilizando BnbDonationService (incluye cache).
+     * Obtiene el Bearer Token para Domiciliación (con cache de 14 mins).
      */
     private function getToken(): ?string
     {
-        return $this->auth->authenticate();
+        $cachedToken = \Illuminate\Support\Facades\Cache::get('bnb_domiciliacion_token');
+        if ($cachedToken) {
+            return $cachedToken;
+        }
+
+        $url = $this->authUrl;
+        
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept'       => 'application/json',
+            ])->post($url, [
+                'accountId'       => config('services.bnb.dom_account_id'),
+                'authorizationId' => config('services.bnb.dom_authorization_id'),
+            ]);
+
+            $body = $response->json();
+
+            if ($response->successful() && ($body['success'] ?? false)) {
+                $token = $body['message'];
+                \Illuminate\Support\Facades\Cache::put('bnb_domiciliacion_token', $token, now()->addMinutes(14));
+                return $token;
+            }
+
+            Log::error('BNB Domiciliacion: Error autenticación', [
+                'status' => $response->status(),
+                'body'   => $body,
+            ]);
+
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error('BNB Domiciliacion: Excepción al autenticar', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     /**

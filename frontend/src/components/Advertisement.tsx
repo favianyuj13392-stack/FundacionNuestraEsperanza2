@@ -41,7 +41,7 @@ const Advertisements = () => {
     <>
       <section 
         id="anuncio"  
-        className="fixed top-[80px] left-0 right-0 z-50 bg-[#FFF5F7] border-b-2 border-rosa-principal/20 py-3 shadow-md"
+        className="relative w-full z-40 bg-[#FFF5F7] border-b-2 border-rosa-principal/20 py-3 shadow-md"
       >
       <div className="container mx-auto px-6">
         <div className="flex items-center gap-4">
