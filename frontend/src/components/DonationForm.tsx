@@ -449,6 +449,17 @@ const DonationForm: React.FC<DonationFormProps> = ({ onClose, isInModal = false,
                             style={{ maxWidth: '100%', height: 'auto' }}
                         />
                     </div>
+                    
+                    <div className="flex justify-center mb-6">
+                        <a 
+                            href={qrData.qr_image.startsWith('data:') ? qrData.qr_image : `data:image/png;base64,${qrData.qr_image}`} 
+                            download="qr_donacion_fne.png"
+                            className="text-rosa-principal font-bold flex items-center gap-2 hover:underline bg-rosa-50 px-4 py-2 rounded-full text-sm"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Descargar QR
+                        </a>
+                    </div>
 
                     <div className="flex justify-center items-center gap-3 mb-6 bg-gray-50 p-3 rounded-lg">
                         <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-rosa-principal"></div>

@@ -1,7 +1,7 @@
 <?php
 // Script actualizado para apuntar al servidor de PRODUCCION del BNB
 // La mayoria de las veces, si test es test.bnb.com.bo, produccion es www.bnb.com.bo o api.bnb.com.bo
-$url = 'https://www.bnb.com.bo/ClientAuthentication.API/api/v1/auth/UpdateCredentials';
+$url = 'https://test.bnb.com.bo/ClientAuthentication.API/api/v1/auth/UpdateCredentials';
 
 $data = array(
     'AccountId' => 'FUNDESPDOM',

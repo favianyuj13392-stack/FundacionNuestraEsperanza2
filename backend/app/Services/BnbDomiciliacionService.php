@@ -288,6 +288,99 @@ class BnbDomiciliacionService
         }
     }
 
+    /**
+     * Obtiene el detalle actual de una domiciliación.
+     * Referencia doc: §12 POST GetDetail
+     * Requerido para poder cancelar una suscripción.
+     *
+     * @param string $qrId
+     * @return array{success: bool, message: string, bnb_response: array|null}
+     */
+    public function getDetail(string $qrId): array
+    {
+        $url = $this->baseUrl . '/GetDetail';
+
+        if (config('bnb.mock_mode')) {
+            return $this->successResponse('Mock: GetDetail', [
+                'success' => true,
+                'data' => [
+                    'qrId' => $qrId,
+                    'installments' => [
+                        ['id' => 1, 'amount' => 100, 'scheduledDate' => now()->format('Y-m-d H:i')]
+                    ]
+                ]
+            ]);
+        }
+
+        $token = $this->getToken();
+        if (! $token) return $this->errorResponse('Sin token BNB.');
+
+        $payload = ['qrId' => $qrId];
+
+        try {
+            $response = $this->makePost($url, $token, $payload);
+            $body = $response->json();
+
+            if ($response->successful() && ($body['success'] ?? false)) {
+                return $this->successResponse('Detalle obtenido correctamente.', $body);
+            }
+            return $this->errorResponse($body['message'] ?? 'Error BNB.', $body);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error de conexión: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancela una suscripción activa.
+     * Referencia doc: §14 POST UpdatePendingQuota
+     * Requiere el array de installments exacto devuelto por GetDetail.
+     *
+     * @param string $qrId
+     * @param array $installments Array de cuotas pendientes devuelto por GetDetail
+     * @return array{success: bool, message: string, bnb_response: array|null}
+     */
+    public function cancelSubscription(string $qrId, array $installments): array
+    {
+        $url = $this->baseUrl . '/UpdatePendingQuota';
+
+        if (config('bnb.mock_mode')) {
+            return $this->successResponse('Mock: CancelSubscription exitoso', [
+                'success' => true,
+                'data' => [
+                    'qrId' => $qrId,
+                    'installments' => [['id' => 1, 'status' => true, 'errorMessage' => '']]
+                ]
+            ]);
+        }
+
+        $token = $this->getToken();
+        if (! $token) return $this->errorResponse('Sin token BNB.');
+
+        // scheduleStatus 4 = Cancelado por la empresa
+        $payload = [
+            'qrId'           => $qrId,
+            'scheduleStatus' => 4,
+            'installments'   => $installments
+        ];
+
+        try {
+            $response = $this->makePost($url, $token, $payload);
+            $body = $response->json();
+
+            if ($response->successful() && ($body['success'] ?? false)) {
+                // Verificar si alguna cuota dio error (status: false)
+                $firstInst = $body['data']['installments'][0] ?? null;
+                if ($firstInst && !($firstInst['status'] ?? true)) {
+                    return $this->errorResponse('BNB rechazó la actualización de la cuota: ' . ($firstInst['errorMessage'] ?? ''));
+                }
+                return $this->successResponse('Suscripción cancelada correctamente.', $body);
+            }
+            return $this->errorResponse($body['message'] ?? 'Error BNB.', $body);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Error de conexión: ' . $e->getMessage());
+        }
+    }
+
     // =========================================================================
     // MÉTODOS PRIVADOS / HELPERS
     // =========================================================================
@@ -346,12 +439,10 @@ class BnbDomiciliacionService
             'amount'               => (float) $subscription->amount,  // cast explícito a double
             'reference'            => $subscription->reference,
             'serviceCode'          => $this->serviceCode,
-            // dueDate vacío = 30 días de validez por defecto (según la doc del BNB)
-            'dueDate'              => '',
-            // Primer cobro: mañana a las 10:00 si no se especificó otro fecha
-            'scheduledDate'        => $subscription->scheduled_date
-                                        ? $subscription->scheduled_date->format('Y-m-d H:i')
-                                        : now()->addDay()->format('Y-m-d') . ' 10:00',
+            // dueDate: QR válido solo HOY
+            'dueDate'              => now()->format('Y-m-d'),
+            // Primer cobro: Hoy a las 23:50 (garantiza futuro sin importar hora de escaneo)
+            'scheduledDate'        => now()->format('Y-m-d') . ' 23:50',
             'paymentFrequency'     => BnbSubscription::FREQ_MONTHLY,  // 3 = Mensual
             'clientIdentifier'     => $client->identifier,
         ];
