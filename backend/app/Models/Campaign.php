@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class Campaign extends Model
 {
@@ -63,5 +64,18 @@ class Campaign extends Model
     public function qrs(): HasMany
     {
         return $this->hasMany(Qr::class);
+    }
+
+    protected static function booted()
+    {
+        static::saved(function ($campaign) {
+            Cache::forget('transparency_campaigns');
+            Cache::forget('transparency_campaign_' . $campaign->slug);
+        });
+
+        static::deleted(function ($campaign) {
+            Cache::forget('transparency_campaigns');
+            Cache::forget('transparency_campaign_' . $campaign->slug);
+        });
     }
 }
