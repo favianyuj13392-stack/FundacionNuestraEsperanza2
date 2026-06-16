@@ -66,9 +66,8 @@ export default function AboutPage() {
 
   return (
       <main className="overflow-x-hidden">
-        <Advertisements />
         <Navbar onOpenDonationModal={openModal} />
-        <div className="h-[100px]"></div> {/* Espaciador para el Advertisement fijo */}
+        <Advertisements />
         
         {loading ? (
           <div className="flex justify-center items-center h-64">

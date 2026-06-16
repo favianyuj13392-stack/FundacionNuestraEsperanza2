@@ -16,7 +16,6 @@ class NavLinksSeeder extends Seeder
             ['title' => 'Cómo Ayudar', 'url' => '/como-ayudar', 'location' => 'both', 'order' => 4],
             ['title' => 'Noticias', 'url' => '/news', 'location' => 'both', 'order' => 5],
             ['title' => 'Testimonios', 'url' => '/testimonials', 'location' => 'both', 'order' => 6],
-            ['title' => 'Contacto', 'url' => '/#contacto', 'location' => 'header', 'order' => 7],
             ['title' => 'Anuncios', 'url' => '/anuncios', 'location' => 'both', 'order' => 8],
             ['title' => 'Campañas', 'url' => '/campanas', 'location' => 'both', 'order' => 9],
         ];

@@ -66,9 +66,8 @@ export default function HelpPage() {
 
   return (
       <main className="bg-white">
-        <Advertisements />
         <Navbar onOpenDonationModal={openModal} />
-        <div className="h-[90px]"></div> {/* Espaciador para el Advertisement fijo */}
+        <Advertisements />
 
         {loading ? (
         <div className="flex justify-center items-center h-64">

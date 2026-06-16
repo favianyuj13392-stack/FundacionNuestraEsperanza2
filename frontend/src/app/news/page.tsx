@@ -58,9 +58,8 @@ export default function NewsPage() {
 
     return (
         <main>
-            <Advertisements />
             <Navbar onOpenDonationModal={openModal} />
-            <div className="h-[70px]"></div> {/* Espaciador para el Advertisement fijo */}
+            <Advertisements />
 
             {loading ? (
               <div className="flex justify-center items-center h-64">

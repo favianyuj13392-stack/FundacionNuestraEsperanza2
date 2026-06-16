@@ -66,9 +66,8 @@ export default function ProgramsPage() {
 
     return (
         <main>
-            <Advertisements />
             <Navbar onOpenDonationModal={openModal} />
-            <div className="h-[90px]"></div>
+            <Advertisements />
 
             {loading ? (
               <div className="flex justify-center items-center h-64">
