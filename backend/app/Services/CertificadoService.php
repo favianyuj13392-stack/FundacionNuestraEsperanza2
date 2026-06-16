@@ -105,4 +105,87 @@ class CertificadoService
 
         return $certificate;
     }
+
+    /**
+     * Regenera el archivo PDF de un certificado existente que falte en el disco.
+     *
+     * @param Certificate $certificate
+     * @return bool
+     */
+    public function regenerarCertificadoArchivo(Certificate $certificate): bool
+    {
+        $donation = $certificate->donation;
+        if (!$donation) {
+            return false;
+        }
+
+        // --- 1. Prepare Background Image ---
+        $bgPath = resource_path('views/pdf/fondoCertificado.png');
+        $bgBase64 = '';
+        if (File::exists($bgPath)) {
+            $bgData = File::get($bgPath);
+            $bgBase64 = 'data:image/png;base64,' . base64_encode($bgData);
+        }
+
+        // --- 2. Format Date (es) ---
+        $date = $donation->date instanceof \Carbon\Carbon ? $donation->date : \Carbon\Carbon::parse($donation->date);
+        $date->locale('es');
+        $fechaTexto = $date->isoFormat('D [de] MMMM [de] YYYY');
+
+        // --- 3. Amount in Words ---
+        $amount = $donation->amount;
+        $formatter = new \NumberFormatter("es", \NumberFormatter::SPELLOUT);
+        $amountInWords = strtoupper($formatter->format($amount));
+
+        $data = [
+            'donante_nombre' => $donation->qr->donor_name ?? $donation->donor->full_name ?? 'Donante Anónimo',
+            'donacion_monto' => number_format($donation->amount, 2),
+            'donacion_monto_letras' => $amountInWords,
+            'donacion_fecha_texto' => $fechaTexto,
+            'certificado_uuid' => $certificate->folio,
+            'fondo_imagen' => $bgBase64,
+        ];
+
+        // Normalizar la ruta del archivo relativa al disco public
+        $filename = ltrim($certificate->pdf_url, '/');
+        if (str_starts_with($filename, 'storage/')) {
+            $filename = substr($filename, 8);
+        }
+
+        $absolutePath = Storage::disk('public')->path($filename);
+
+        // Asegurar que exista la carpeta
+        $dir = dirname($absolutePath);
+        if (!File::isDirectory($dir)) {
+            File::makeDirectory($dir, 0755, true, true);
+        }
+
+        try {
+            $pdf = Pdf::loadView('pdf.certificado', $data)
+                      ->setPaper('a4', 'landscape');
+
+            $pdfContent = $pdf->output();
+
+            if (empty($pdfContent)) {
+                throw new \Exception("DomPDF generó contenido vacío.");
+            }
+
+            Storage::disk('public')->put($filename, $pdfContent);
+
+            if (File::exists($absolutePath)) {
+                File::chmod($absolutePath, 0644);
+            }
+
+            // Si la ruta normalizada difiere de la almacenada, actualizar la DB
+            if ($certificate->pdf_url !== $filename) {
+                $certificate->pdf_url = $filename;
+                $certificate->save();
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Error regenerating certificate PDF. Certificate ID: {$certificate->id}", ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
 }
