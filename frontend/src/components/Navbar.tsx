@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { resolveImageUrl } from '@/utils/imageUrl';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 interface NavLink {
   id?: number;
@@ -21,7 +22,6 @@ const Navbar: React.FC<NavbarProps> = ({ onOpenDonationModal = () => { } }) => {
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout, isLoading } = useAuth();
-  const API_BASE_URL = 'http://127.0.0.1:8000';
   /*const navLinks = [
     { name: "Inicio", path: "/" },
     { name: "Quiénes Somos", path: "/quienes-somos" },

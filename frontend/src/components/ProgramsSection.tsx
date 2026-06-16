@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 // Exportamos la interfaz para que page.tsx pueda usarla
 export interface Program {
@@ -23,7 +24,7 @@ const ProgramsSection: React.FC<ProgramsSectionProps> = ({ onOpenProgramModal })
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const API_URL = 'http://127.0.0.1:8000/api';
+    const API_URL = `${API_BASE_URL}/api`;
 
     useEffect(() => {
         const loadPrograms = async () => {

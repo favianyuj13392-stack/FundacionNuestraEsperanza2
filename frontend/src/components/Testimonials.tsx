@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { resolveImageUrl } from '@/utils/imageUrl';
+import { API_BASE_URL as CENTRAL_API_BASE_URL } from '@/utils/apiBaseUrl';
 
 // --- 1. CONFIGURACIÓN DE URL DEL BACKEND (Igual que en Programs) ---
 // Define aquí la dirección de tu backend Laravel.
-const LARAVEL_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'; 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api'; 
+const LARAVEL_BASE_URL = CENTRAL_API_BASE_URL; 
+const API_BASE_URL = `${CENTRAL_API_BASE_URL}/api`; 
 
 // Interfaz alineada con tu API y BD
 interface TestimonialItem {

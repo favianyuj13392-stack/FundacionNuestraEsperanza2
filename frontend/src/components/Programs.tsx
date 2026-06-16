@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { API_BASE_URL as CENTRAL_API_BASE_URL } from '@/utils/apiBaseUrl';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -23,7 +24,7 @@ const Programs = () => {
   // 2. Estado para el Modal (cuál programa está seleccionado)
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
+  const API_URL = `${CENTRAL_API_BASE_URL}/api`;
 
   useEffect(() => {
     const fetchPrograms = async () => {

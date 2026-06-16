@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { API_BASE_URL } from "@/utils/apiBaseUrl";
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -27,10 +28,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // Define la URL de tu API de Laravel
-    // Asegúrate de que esta sea la URL correcta en producción
-    // Por defecto en desarrollo usar localhost para evitar errores DNS
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+    const API_URL = API_BASE_URL;
 
     try {
       // Solicitar cookie CSRF antes de operaciones que usan sesión

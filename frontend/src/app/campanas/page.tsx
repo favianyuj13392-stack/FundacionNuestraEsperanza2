@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
 import Link from 'next/link';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 import { motion } from 'framer-motion';
 import { fetchTransparencyCampaigns, TransparencyCampaign } from '@/services/transparencyService';
 
@@ -78,7 +79,7 @@ export default function CampanasPage() {
                                 <div className="relative h-48 w-full bg-gray-200">
                                     {campaign.image_path ? (
                                         <Image 
-                                            src={campaign.image_path.startsWith('http') ? campaign.image_path : `${process.env.NEXT_PUBLIC_API_BASE_URL ? process.env.NEXT_PUBLIC_API_BASE_URL.replace('/api', '') : 'http://127.0.0.1:8000'}/storage/${campaign.image_path}`} 
+                                            src={campaign.image_path.startsWith('http') ? campaign.image_path : `${API_BASE_URL}/storage/${campaign.image_path}`} 
                                             alt={campaign.name} 
                                             fill 
                                             className="object-cover" 

@@ -14,7 +14,6 @@ export function normalizeApiBaseUrl(rawUrl: string | undefined) {
   return normalized || 'http://127.0.0.1:8000';
 }
 
-// In production, we don't rely on NEXT_PUBLIC_API_BASE_URL because Docker env injection is failing
 export const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://api.fundacion-nuestra-esperanza.cloud/api' 
+  ? 'https://api.fundacion-nuestra-esperanza.cloud' 
   : normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);

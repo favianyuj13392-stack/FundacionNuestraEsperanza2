@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from 'react';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
-// 1. DEFINICIÓN SEGURA DE LA URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_URL = API_BASE_URL;
 
 const Suscribe = () => {
   const [email, setEmail] = useState('');

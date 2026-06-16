@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
-// Get API URL from env or default, but force production if NODE_ENV is production
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://api.fundacion-nuestra-esperanza.cloud' 
-  : (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000');
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
+
+const API_URL = API_BASE_URL;
 
 // Configure axios to include auth token
 const getAuthHeaders = () => {

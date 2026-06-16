@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { API_BASE_URL as CENTRAL_API_BASE_URL } from '@/utils/apiBaseUrl';
 import Link from 'next/link';
 
 // 1. Definimos la estructura de la Noticia
@@ -18,7 +19,7 @@ const News = () => {
   const [loading, setLoading] = useState(true);
 
   // URL del Backend
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
+  const API_URL = `${CENTRAL_API_BASE_URL}/api`;
 
   // 2. Cargar Datos
   useEffect(() => {

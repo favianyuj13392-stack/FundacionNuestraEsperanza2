@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { motion, useInView, animate } from 'framer-motion';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 function Counter({ from, to }: { from: number, to: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -28,7 +29,7 @@ const Stats = () => {
   const [stats, setStats] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/stats') 
+    fetch(`${API_BASE_URL}/api/stats`) 
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => console.error("Error cargando stats:", err));

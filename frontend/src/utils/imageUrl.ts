@@ -1,4 +1,6 @@
-const DEFAULT_BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+import { API_BASE_URL } from './apiBaseUrl';
+
+const DEFAULT_BACKEND_URL = API_BASE_URL;
 
 export const resolveImageUrl = (value: string | null | undefined, fallback = '/placeholder-image.jpg') => {
   if (!value) return fallback;

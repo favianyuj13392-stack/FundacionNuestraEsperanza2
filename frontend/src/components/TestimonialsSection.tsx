@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 export interface TestimonialItem {
     id: number;
@@ -15,7 +16,7 @@ const TestimonialsSection = () => {
     const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const API_URL = 'http://127.0.0.1:8000/api';
+    const API_URL = `${API_BASE_URL}/api`;
     const phoneNumber = "59170112236"; 
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=Hola,%20quisiera%20compartir%20mi%20experiencia%20con%20la%20fundación.`;
 

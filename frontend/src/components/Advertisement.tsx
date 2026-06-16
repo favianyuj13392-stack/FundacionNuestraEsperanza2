@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { X,  ChevronLeft, ChevronRight, BellRing } from 'lucide-react';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 const imageLoader = ({ src }: { src: string }) => src;
 
@@ -13,7 +14,7 @@ const Advertisements = () => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/advertisements')
+    fetch(`${API_BASE_URL}/api/advertisements`)
       .then(res => res.json())
       .then(data => {
         // Filtramos solo los activos

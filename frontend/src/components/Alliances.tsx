@@ -2,12 +2,13 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 const Alliances = () => {
   const [alliances, setAlliances] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/alliances')
+    fetch(`${API_BASE_URL}/api/alliances`)
       .then(res => res.json())
       .then(data => setAlliances(data))
       .catch(err => console.error("Error cargando alianzas:", err));

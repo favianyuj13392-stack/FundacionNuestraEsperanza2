@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 export interface TransparencyCampaign {
     id: number;
@@ -40,7 +40,7 @@ export interface TransparencyDetail {
 
 export const fetchTransparencyCampaigns = async (): Promise<TransparencyCampaign[]> => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/transparency`);
+        const response = await axios.get(`${API_BASE_URL}/api/transparency`);
         return (response.data as any)?.data || [];
     } catch (error) {
         console.error("Error fetching transparency campaigns:", error);
@@ -50,7 +50,7 @@ export const fetchTransparencyCampaigns = async (): Promise<TransparencyCampaign
 
 export const fetchTransparencyDetail = async (slug: string): Promise<TransparencyDetail | null> => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/transparency/${slug}`);
+        const response = await axios.get(`${API_BASE_URL}/api/transparency/${slug}`);
         return (response.data as any)?.data || null;
     } catch (error) {
         console.error(`Error fetching transparency detail for ${slug}:`, error);

@@ -3,6 +3,7 @@ import React, { useState,useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { resolveImageUrl } from '@/utils/imageUrl';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 
 interface NavLink {
   title: string;
@@ -31,7 +32,7 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
   // --- Lógica de Suscripción (Integrada aquí también) ---
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const API_URL = 'http://127.0.0.1:8000/api';
+  const API_URL = `${API_BASE_URL}/api`;
   const [settings, setSettings] = useState<FooterSettings | null>(null);
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
 

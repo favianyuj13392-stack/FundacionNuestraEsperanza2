@@ -2,6 +2,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from 'framer-motion';
@@ -17,7 +18,7 @@ export default function AnnouncementsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(6);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/advertisements')
+    fetch(`${API_BASE_URL}/api/advertisements`)
       .then(res => res.json())
       .then(data => setAds(data.filter((a: { is_active: boolean }) => a.is_active)));
   }, []);

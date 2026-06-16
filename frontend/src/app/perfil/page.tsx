@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from '@/utils/apiBaseUrl';
 import { donationService, Donation } from '@/services/donationService';
 import DonationModal from '@/components/DonationModal';
 
@@ -76,7 +77,7 @@ export default function ProfilePage() {
         setProfileMessage(null);
         
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+            const API_URL = API_BASE_URL;
             const res = await fetch(`${API_URL}/api/auth/update-profile`, {
                 method: 'POST',
                 headers: {
@@ -112,7 +113,7 @@ export default function ProfilePage() {
         setPasswordMessage(null);
 
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+            const API_URL = API_BASE_URL;
             const res = await fetch(`${API_URL}/api/auth/change-password`, {
                 method: 'POST',
                 headers: {
@@ -189,7 +190,7 @@ export default function ProfilePage() {
                                 {/* Admin Panel Button - Only visible for admin users */}
                                 {user.roles && user.roles.includes('admin') && (
                                     <a 
-                                        href={`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/admin`}
+                                        href={`${API_BASE_URL}/admin`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-left px-4 py-3 rounded-lg font-bold transition flex items-center gap-3 text-purple-600 hover:bg-purple-50"
