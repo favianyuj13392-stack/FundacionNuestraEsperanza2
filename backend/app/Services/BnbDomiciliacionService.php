@@ -33,7 +33,8 @@ class BnbDomiciliacionService
     public function __construct()
     {
         $this->baseUrl = config('services.bnb.dom_url', 'http://test.bnb.com.bo/DirectDebit/api') . '/Services';
-        $this->authUrl = config('services.bnb.auth_url', 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1') . '/auth/Token';
+        // Domiciliación uses its own auth endpoint (may differ from QR Simple in production)
+        $this->authUrl = config('services.bnb.dom_auth_url', config('services.bnb.auth_url', 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1')) . '/auth/Token';
         $this->serviceCode = trim((string) config('bnb.service_code', ''));
     }
 

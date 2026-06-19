@@ -44,7 +44,10 @@ return [
         'authorization_id' => env('BNB_AUTH_ID'),
         'dom_account_id' => env('BNB_DOM_ACCOUNT_ID'),
         'dom_authorization_id' => env('BNB_DOM_AUTHORIZATION_ID'),
+        // Auth URL for QR Simple (shared auth server)
         'auth_url' => env('BNB_AUTH_URL', 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1'),
+        // Auth URL specific to Domiciliación (can differ from QR Simple in production)
+        'dom_auth_url' => env('BNB_DOM_AUTH_URL', env('BNB_AUTH_URL', 'http://test.bnb.com.bo/ClientAuthentication.API/api/v1')),
         'qr_url' => env('BNB_QR_URL', 'http://test.bnb.com.bo/QRSimple.API/api/v1'),
         'dom_url' => env('BNB_DOM_URL', 'http://test.bnb.com.bo/DirectDebit/api'),
     ],
