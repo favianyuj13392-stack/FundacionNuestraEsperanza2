@@ -77,6 +77,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/api/auth/*',
             '/api/public/*',
             '/api/webhooks/*',
+            '/api/subscriptions/*',
             '/api/subscribe',
             '/api/contact',
             'api/webhooks/bnb', 
