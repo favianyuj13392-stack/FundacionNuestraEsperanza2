@@ -11,6 +11,10 @@ class BnbWebhookController extends Controller
 {
     public function handle(Request $request, \App\Services\BnbDonationService $bnbService)
     {
+        // === TEMPORARY BYPASS PARA REGISTRO DE WEBHOOK EN PRODUCCION ===
+        return response()->json(['success' => true, 'message' => 'OK']);
+        // ===============================================================
+
         // 1. SECURITY: Trust but Verify
         // El secret por URL fue eliminado para evitar fricción con el banco.
         // La seguridad está garantizada porque más abajo consultamos activamente
