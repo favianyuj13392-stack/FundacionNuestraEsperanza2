@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\AdminDonationController;
 use App\Http\Controllers\PublicDonationController;
+use App\Http\Controllers\AnalyticsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -136,6 +137,9 @@ Route::post('/contact', function (Request $request) {
 
     return response()->json(['message' => 'Mensaje enviado con éxito'], 201);
 });
+
+// 4.b ENDPOINT PARA REGISTRAR VISITAS
+Route::post('/track-visit', [AnalyticsController::class, 'trackVisit']);
 
 // 5. ENDPOINT PARA SUSCRIPCIÓN
 Route::post('/subscribe', function (Request $request) {
