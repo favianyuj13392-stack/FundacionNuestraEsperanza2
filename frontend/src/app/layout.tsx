@@ -5,6 +5,7 @@ import AOSInitializer from "@/components/AOSInitializer";
 import ChatbaseBot from "@/components/Chatbasebot";
 import { AuthProvider } from '@/context/AuthContext';
 import { HomeSectionsProvider } from '@/context/HomeSectionsContext';
+import PageTracker from "@/components/PageTracker";
 
 const mPlus=M_PLUS_Rounded_1c({
   subsets:['latin'],
@@ -40,6 +41,7 @@ export default function RootLayout({
         <AuthProvider>
           <HomeSectionsProvider>
           <AOSInitializer />
+          <PageTracker />
           {children}
           </HomeSectionsProvider>
           <ChatbaseBot />
