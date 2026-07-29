@@ -80,6 +80,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/api/subscriptions/*',
             '/api/subscribe',
             '/api/contact',
+            '/api/track-visit',
             'api/webhooks/bnb', 
             'api/webhooks/*',
         ]);
