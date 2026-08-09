@@ -49,4 +49,12 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 EXPOSE 9000
 
+# Tuning PHP-FPM para evitar picos del 100% de CPU
+RUN echo "[www]" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.max_children = 25" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.min_spare_servers = 5" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.max_spare_servers = 10" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.max_requests = 500" >> /usr/local/etc/php-fpm.d/zz-docker.conf
+
 CMD ["php-fpm"]

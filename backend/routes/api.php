@@ -32,7 +32,7 @@ use Carbon\Carbon;
 | Authentication Routes (Public)
 |--------------------------------------------------------------------------
 */
-Route::prefix('auth')->group(function () {
+Route::prefix('auth')->middleware('throttle:10,1')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
     Route::get('login', function () {
@@ -136,10 +136,10 @@ Route::post('/contact', function (Request $request) {
     ContactMessage::create($validated);
 
     return response()->json(['message' => 'Mensaje enviado con éxito'], 201);
-});
+})->middleware('throttle:10,1');
 
 // 4.b ENDPOINT PARA REGISTRAR VISITAS
-Route::post('/track-visit', [AnalyticsController::class, 'trackVisit']);
+Route::post('/track-visit', [AnalyticsController::class, 'trackVisit'])->middleware('throttle:60,1');
 
 // 5. ENDPOINT PARA SUSCRIPCIÓN
 Route::post('/subscribe', function (Request $request) {
@@ -150,7 +150,7 @@ Route::post('/subscribe', function (Request $request) {
     Subscriber::create($validated);
 
     return response()->json(['message' => 'Suscripción exitosa'], 201);
-});
+})->middleware('throttle:10,1');
 
 // 6. ENDPOINT PARA SETTINGS
 Route::get('/settings', function () {
@@ -431,7 +431,7 @@ Route::get('/about-us', function () {
 | Public Donation Routes (main)
 |--------------------------------------------------------------------------
 */
-Route::prefix('public')->group(function () {
+Route::prefix('public')->middleware('throttle:30,1')->group(function () {
     Route::get('campaigns', [\App\Http\Controllers\PublicCampaignController::class, 'index']);
     Route::get('donation-options', [PublicDonationController::class, 'getOptions']);
     Route::post('request-qr', [PublicDonationController::class, 'requestQr']);
@@ -444,7 +444,7 @@ Route::prefix('public')->group(function () {
 | El donante no necesita estar registrado para suscribirse.
 |--------------------------------------------------------------------------
 */
-Route::prefix('subscriptions')->group(function () {
+Route::prefix('subscriptions')->middleware('throttle:30,1')->group(function () {
     // Crear suscripción + generar QR de domiciliación
     Route::post('domiciliacion', [\App\Http\Controllers\BnbSubscriptionController::class, 'store']);
     // Consultar estado de una suscripción (para polling desde el frontend)
@@ -518,7 +518,7 @@ Route::post('webhooks/bnb', [\App\Http\Controllers\BnbWebhookController::class, 
 // Webhooks de Domiciliación (Débito Automático)
 // ⚠️ Sin middleware de autenticación: el BNB llama a estos endpoints directamente.
 // ⚠️ Sin ?secret=: el BNB no soporta query params en URLs de webhook.
-Route::prefix('webhooks/bnb')->group(function () {
+Route::prefix('webhooks/bnb')->middleware('throttle:60,1')->group(function () {
     Route::post('enroll',  [\App\Http\Controllers\BnbDomiciliacionWebhookController::class, 'enroll']);
     Route::post('payment', [\App\Http\Controllers\BnbDomiciliacionWebhookController::class, 'payment']);
 });
