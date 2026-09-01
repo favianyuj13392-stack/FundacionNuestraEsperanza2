@@ -146,23 +146,55 @@ class Atc3dsService
         $resData = $response['data'];
         $authInfo = $resData['consumerAuthenticationInformation'] ?? [];
         $status = $resData['status'] ?? ($authInfo['status'] ?? 'FAILED');
+        $referenceNo = $data['merchantReferenceNumber'] ?? ($resData['clientReferenceInformation']['code'] ?? null);
 
         $rawEci = $authInfo['eci'] ?? ($authInfo['eciRaw'] ?? ($authInfo['ecommerceIndicator'] ?? null));
         $cardNum = $data['card_number'] ?? '';
-        $eciCode = is_numeric($rawEci) ? str_pad((string)$rawEci, 2, '0', STR_PAD_LEFT) : (str_starts_with($cardNum, '5') ? '02' : '05');
+        $cardType = $data['card_type'] ?? (str_starts_with($cardNum, '5') ? 'MASTERCARD' : (str_starts_with($cardNum, '3') ? 'AMEX' : 'VISA'));
+
+        $normalizedEci = is_numeric($rawEci) ? str_pad((string)((int)$rawEci), 2, '0', STR_PAD_LEFT) : null;
+        $cavv = $authInfo['cavv'] ?? $authInfo['ucafAuthenticationData'] ?? $authInfo['token'] ?? null;
+        $ucafIndicator = $authInfo['ucafCollectionIndicator'] ?? (str_starts_with($cardNum, '5') ? '2' : null);
+        $veresEnrolled = $authInfo['veresEnrolled'] ?? null;
+
+        $isAuthentic = $this->isEciAuthenticAndProtected($cardType, $rawEci, $cavv, $ucafIndicator, $veresEnrolled);
 
         if ($status === 'AUTHENTICATION_SUCCESSFUL') {
-            // Flujo Sin Fricción (Frictionless)
+            // Si Cybersource dice exitoso pero el ECI es inválido (07, 00, sin cavv/aav) -> BLOQUEAR
+            if (!$isAuthentic) {
+                $this->recordRejectedAuthentication($data, $resData, $normalizedEci ?: ($rawEci ?: '07'));
+
+                Log::warning("[ATC CheckEnrollment ECI Block] Tarjeta sin Liability Shift rechazada para cobro:", [
+                    'card_type' => $cardType,
+                    'rawEci' => $rawEci,
+                    'normalizedEci' => $normalizedEci,
+                    'reference' => $referenceNo,
+                    'requestId' => $resData['id'] ?? null,
+                ]);
+
+                return [
+                    'success' => false,
+                    'isChallengeRequired' => false,
+                    'status' => 'AUTHENTICATION_FAILED_ECI',
+                    'eci' => $normalizedEci ?: '07',
+                    'merchantReferenceNumber' => $referenceNo,
+                    'authenticationRequestId' => $resData['id'] ?? null,
+                    'message' => 'La tarjeta no pudo ser verificada de forma segura por su banco emisor (Autenticación 3DS2 no superada). Por favor intente con otra tarjeta.',
+                    'raw' => $resData,
+                ];
+            }
+
+            // Flujo Sin Fricción Válido (Frictionless)
             return [
                 'success' => true,
                 'isChallengeRequired' => false,
                 'status' => 'AUTHENTICATION_SUCCESSFUL',
-                'eci' => $eciCode,
-                'cavv' => $authInfo['cavv'] ?? $authInfo['ucafAuthenticationData'] ?? $authInfo['token'] ?? null,
+                'eci' => $normalizedEci ?: (str_starts_with($cardNum, '5') ? '02' : '05'),
+                'cavv' => $cavv,
                 'ucafAuthenticationData' => $authInfo['ucafAuthenticationData'] ?? null,
-                'ucafCollectionIndicator' => $authInfo['ucafCollectionIndicator'] ?? (str_starts_with($cardNum, '5') ? '2' : null),
+                'ucafCollectionIndicator' => $ucafIndicator,
                 'xid' => $authInfo['xid'] ?? null,
-                'veresEnrolled' => $authInfo['veresEnrolled'] ?? 'Y',
+                'veresEnrolled' => $veresEnrolled ?? 'Y',
                 'threeDSServerTransactionId' => $authInfo['threeDSServerTransactionId'] ?? null,
                 'specificationVersion' => $authInfo['specificationVersion'] ?? '2.2.0',
             ];
@@ -179,11 +211,16 @@ class Atc3dsService
             ];
         }
 
+        // Rechazo general de autenticación
+        $this->recordRejectedAuthentication($data, $resData, $normalizedEci ?: ($rawEci ?: 'FAILED'));
+
         return [
             'success' => false,
             'isChallengeRequired' => false,
             'status' => $status,
-            'message' => 'La tarjeta no pudo ser autenticada por el banco emisor.',
+            'merchantReferenceNumber' => $referenceNo,
+            'authenticationRequestId' => $resData['id'] ?? null,
+            'message' => 'La tarjeta no pudo ser autenticada por el banco emisor. Por favor intente con otra tarjeta.',
             'raw' => $resData,
         ];
     }
@@ -194,9 +231,11 @@ class Atc3dsService
      */
     public function validateChallenge(array $data): array
     {
+        $referenceNo = $data['merchantReferenceNumber'] ?? ('ATC-REF-' . strtoupper(Str::random(10)));
+
         $payload = [
             'clientReferenceInformation' => [
-                'code' => $data['merchantReferenceNumber'] ?? ('ATC-REF-' . strtoupper(Str::random(10))),
+                'code' => $referenceNo,
             ],
             'consumerAuthenticationInformation' => [
                 'authenticationTransactionId' => $data['authenticationTransactionId'],
@@ -216,21 +255,134 @@ class Atc3dsService
         $resData = $response['data'];
         $authInfo = $resData['consumerAuthenticationInformation'] ?? [];
         $status = $resData['status'] ?? ($authInfo['status'] ?? 'FAILED');
-        $eci = $authInfo['eci'] ?? ($authInfo['eciRaw'] ?? ($authInfo['ecommerceIndicator'] ?? null));
+        $rawEci = $authInfo['eci'] ?? ($authInfo['eciRaw'] ?? ($authInfo['ecommerceIndicator'] ?? null));
+        $normalizedEci = is_numeric($rawEci) ? str_pad((string)((int)$rawEci), 2, '0', STR_PAD_LEFT) : null;
+        $cavv = $authInfo['cavv'] ?? $authInfo['ucafAuthenticationData'] ?? $authInfo['token'] ?? null;
+        $ucafIndicator = $authInfo['ucafCollectionIndicator'] ?? '2';
+        $cardType = $data['card_type'] ?? 'VISA';
+
+        $isAuthentic = ($status === 'AUTHENTICATION_SUCCESSFUL') && $this->isEciAuthenticAndProtected($cardType, $rawEci, $cavv, $ucafIndicator);
+
+        if (!$isAuthentic) {
+            $this->recordRejectedAuthentication($data, $resData, $normalizedEci ?: ($rawEci ?: 'INV'));
+
+            return [
+                'success' => false,
+                'isChallengeRequired' => false,
+                'status' => 'AUTHENTICATION_FAILED_ECI',
+                'eci' => $normalizedEci ?: '07',
+                'authenticationRequestId' => $resData['id'] ?? null,
+                'message' => 'El desafío de seguridad 3DS2 no fue superado o fue rechazado por el banco emisor.',
+                'raw' => $resData,
+            ];
+        }
 
         return [
-            'success' => ($status === 'AUTHENTICATION_SUCCESSFUL'),
+            'success' => true,
             'isChallengeRequired' => false,
             'status' => $status,
-            'eci' => is_numeric($eci) ? str_pad((string)$eci, 2, '0', STR_PAD_LEFT) : '05',
-            'cavv' => $authInfo['cavv'] ?? $authInfo['ucafAuthenticationData'] ?? $authInfo['token'] ?? null,
+            'eci' => $normalizedEci ?: '05',
+            'cavv' => $cavv,
             'ucafAuthenticationData' => $authInfo['ucafAuthenticationData'] ?? null,
-            'ucafCollectionIndicator' => $authInfo['ucafCollectionIndicator'] ?? '2',
+            'ucafCollectionIndicator' => $ucafIndicator,
             'xid' => $authInfo['xid'] ?? null,
             'threeDSServerTransactionId' => $authInfo['threeDSServerTransactionId'] ?? null,
             'specificationVersion' => $authInfo['specificationVersion'] ?? '2.2.0',
             'raw' => $resData,
         ];
+    }
+
+    /**
+     * Valida si el ECI y los datos de autenticación 3DS2 cumplen con el estándar estricto de Liability Shift.
+     * Retorna false para ECI 07/00/vacío o tarjetas no autenticadas, bloqueando el avance al Paso 6 (Captura).
+     */
+    public function isEciAuthenticAndProtected(
+        string $cardType,
+        ?string $rawEci,
+        ?string $cavv,
+        ?string $ucafIndicator = null,
+        ?string $veresEnrolled = null
+    ): bool {
+        $cardUpper = strtoupper($cardType);
+        $isMaster = str_contains($cardUpper, 'MASTER') || str_starts_with($cardUpper, '5');
+        $isAmex = str_contains($cardUpper, 'AMEX') || str_starts_with($cardUpper, '3');
+
+        // Si veresEnrolled es 'N' o 'R' (Rechazado / No enrolado), es inválido de inmediato
+        if (in_array(strtoupper((string)$veresEnrolled), ['N', 'R'])) {
+            return false;
+        }
+
+        // Normalizar ECI numérico a 2 dígitos ('5' -> '05', '2' -> '02', '7' -> '07', '0' -> '00')
+        $normalizedEci = null;
+        if (!is_null($rawEci) && is_numeric($rawEci)) {
+            $normalizedEci = str_pad((string)((int)$rawEci), 2, '0', STR_PAD_LEFT);
+        }
+
+        // Filtro estricto por franquicia
+        if ($isMaster) {
+            // Mastercard: Válido solo si ECI es '02' (Autenticado) o '01' (Intento UCAF).
+            // ECI '00', '07', nulos o sin prueba criptográfica son estrictamente RECHAZADOS.
+            if ($normalizedEci === '00' || $normalizedEci === '07') {
+                return false;
+            }
+            if ($normalizedEci === '02' || $normalizedEci === '01') {
+                return !empty($cavv);
+            }
+            // Si Cybersource no envió campo ECI explícito pero tiene UCAF Indicator '2' y AAV válido
+            if ($ucafIndicator === '2' && !empty($cavv)) {
+                return true;
+            }
+            return false;
+        } elseif ($isAmex) {
+            // American Express: Válido solo si ECI es '05' o '06' Y tiene CAVV.
+            // ECI '07', '00', nulos son estrictamente RECHAZADOS.
+            if ($normalizedEci === '07' || $normalizedEci === '00') {
+                return false;
+            }
+            return in_array($normalizedEci, ['05', '06']) && !empty($cavv);
+        } else {
+            // VISA: Válido solo si ECI es '05' o '06' Y tiene CAVV.
+            // ECI '07', '00', nulos son estrictamente RECHAZADOS.
+            if ($normalizedEci === '07' || $normalizedEci === '00') {
+                return false;
+            }
+            return in_array($normalizedEci, ['05', '06']) && !empty($cavv);
+        }
+    }
+
+    /**
+     * Registra un intento de autenticación 3DS rechazado en la base de datos para auditoría sin cobro.
+     */
+    protected function recordRejectedAuthentication(array $data, array $cybersourceResponse, ?string $eci): void
+    {
+        try {
+            $referenceNo = $data['merchantReferenceNumber'] ?? ($cybersourceResponse['clientReferenceInformation']['code'] ?? null);
+            if (!$referenceNo) {
+                return;
+            }
+
+            $requestId = $cybersourceResponse['id'] ?? null;
+            $cardNum = $data['card_number'] ?? '';
+            $authInfo = $cybersourceResponse['consumerAuthenticationInformation'] ?? [];
+            $cavv = $authInfo['cavv'] ?? $authInfo['ucafAuthenticationData'] ?? $authInfo['token'] ?? null;
+
+            AtcTransaction::updateOrCreate(
+                ['merchant_reference_number' => $referenceNo],
+                [
+                    'cybersource_request_id' => $requestId,
+                    'amount' => $data['amount'] ?? 0,
+                    'currency' => $data['currency'] ?? 'BOB',
+                    'status' => 'FAILED',
+                    'flow_type' => 'CIT_3DS',
+                    'eci_raw' => $eci,
+                    'cavv_raw' => $cavv,
+                    '3ds_version' => $authInfo['specificationVersion'] ?? '2.2.0',
+                    'raw_response' => $cybersourceResponse,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo registrar la transacción rechazada en atc_transactions: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -245,6 +397,29 @@ class Atc3dsService
         $cardType = strtoupper($data['card_type'] ?? 'VISA');
         $isMaster = str_contains($cardType, 'MASTER') || str_starts_with($data['card_number'] ?? '', '5');
         $isAmex = str_contains($cardType, 'AMEX') || str_starts_with($data['card_number'] ?? '', '3');
+
+        // GUARDIA INFRANQUEABLE (Circuit Breaker): En transacciones CIT (donaciones semilla / únicas),
+        // verificar que el ECI y la prueba criptográfica sean 100% auténticos antes de llamar a /pts/v2/payments
+        if (!$isRecurring) {
+            $rawEci = $data['eci'] ?? null;
+            $authProof = $data['cavv'] ?? ($data['ucafAuthenticationData'] ?? null);
+            $ucafIndicator = $data['ucafCollectionIndicator'] ?? null;
+
+            $isAuthentic = $this->isEciAuthenticAndProtected($cardType, $rawEci, $authProof, $ucafIndicator);
+            if (!$isAuthentic) {
+                Log::error("[ATC Security Block] Intento de cobro abortado en Paso 6 por ECI inválido o falta de Liability Shift.", [
+                    'card_type' => $cardType,
+                    'eci' => $rawEci,
+                    'reference' => $referenceNo,
+                ]);
+
+                return [
+                    'success' => false,
+                    'status' => 'SECURITY_BLOCKED_INVALID_ECI',
+                    'message' => 'La transacción no puede ser cobrada porque la tarjeta no cuenta con autenticación 3D Secure válida (ECI no protegido).',
+                ];
+            }
+        }
 
         // Formatear ECI numérico estricto (05/06 para Visa/Amex, 01/02 para Mastercard)
         $rawEci = $data['eci'] ?? null;
