@@ -23,6 +23,8 @@ class Campaign extends Model
         'status',
         'image_path',
         'report_pdf_path',
+        'allowed_frequencies',
+        'allowed_payment_methods',
     ];
 
     /**
