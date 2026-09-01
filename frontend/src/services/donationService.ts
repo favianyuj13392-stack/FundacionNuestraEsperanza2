@@ -47,6 +47,13 @@ export const donationService = {
         return response.data;
     },
 
+    getCampaigns: async (): Promise<any[]> => {
+        const response = await axios.get(`${API_URL}/api/public/campaigns`, {
+            headers: getAuthHeaders()
+        });
+        return (Array.isArray(response.data) ? response.data : ((response.data as any)?.data || [])) as any[];
+    },
+
     /**
      * Request a QR for donation
      */

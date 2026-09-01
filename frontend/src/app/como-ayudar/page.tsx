@@ -51,6 +51,15 @@ export default function HelpPage() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
   useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('reactivate_token') || params.get('token') || params.get('campaign_id')) {
+          setIsModalOpen(true);
+        }
+      }
+  }, []);
+
+  useEffect(() => {
       fetch(`${API_BASE_URL}/api/how-to-help-sections`)
         .then(res => res.json())
         .then(data => {

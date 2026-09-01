@@ -39,18 +39,19 @@ const Footer: React.FC<FooterProps> = ({ onOpenDonationModal = () => {} }) => {
   useEffect(() => {
     //Cargar settings
     fetch(`${API_URL}/settings`)
-      .then(res => res.json())
-      .then(data => setSettings(data))
-      .catch(err => console.error("Error cargando settings en Footer:", err));
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setSettings(data); })
+      .catch(err => console.warn("Notice: settings endpoint unavailable:", err));
     //Cargar enlaces del menú
     fetch(`${API_URL}/nav-links`)
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : [])
       .then(data => {
-        // Filtramos solo los links que deben ir en el footer (o en ambos)
-        const footerLinks = data.filter((link: NavLink) => link.location === 'footer' || link.location === 'both');
-        setNavLinks(footerLinks);
+        if (Array.isArray(data)) {
+          const footerLinks = data.filter((link: NavLink) => link.location === 'footer' || link.location === 'both');
+          setNavLinks(footerLinks);
+        }
       })
-      .catch(err => console.error("Error cargando nav-links en Footer:", err));
+      .catch(err => console.warn("Notice: nav-links endpoint unavailable:", err));
   }, []);
   // Preparamos la URL del logo para el footer
   const footerLogoUrl = resolveImageUrl(settings?.global_logo, "/IMG/Logo.jpg");
