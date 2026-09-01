@@ -27,6 +27,8 @@ services:
     image: nginx:alpine
     container_name: fundacion_nginx
     restart: unless-stopped
+    ports:
+      - "8000:80"
     volumes:
       - ./backend:/var/www/html
       - ./backend/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

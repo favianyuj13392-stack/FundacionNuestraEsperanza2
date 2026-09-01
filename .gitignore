@@ -44,3 +44,8 @@ Thumbs.db
 
 # === DOCKER (no subir datos locales) ===
 db/
+
+# === ARCHIVOS TEMPORALES Y DE IA ===
+engram_security.txt
+engram-export.json
+atc_integration_docs/
