@@ -57,6 +57,34 @@ class CampaignResource extends Resource
                     ])
                     ->default('active')
                     ->required(),
+                Forms\Components\Select::make('allowed_frequencies')
+                    ->label('Frecuencias Permitidas')
+                    ->options([
+                        'all' => 'Todas (Única y Mensual)',
+                        'monthly_only' => 'Solo Donación Mensual (Socios Recurrentes)',
+                        'once_only' => 'Solo Donación Única (Express / Eventos)',
+                    ])
+                    ->default('all')
+                    ->live()
+                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $state === 'monthly_only' ? $set('allowed_payment_methods', 'card_only') : null)
+                    ->required(),
+                Forms\Components\Select::make('allowed_payment_methods')
+                    ->label('Métodos de Pago Permitidos')
+                    ->options(function (Forms\Get $get) {
+                        $freq = $get('allowed_frequencies');
+                        if ($freq === 'monthly_only') {
+                            return [
+                                'card_only' => 'Solo Tarjeta de Crédito/Débito (ATC)',
+                            ];
+                        }
+                        return [
+                            'all' => 'Todos (Tarjeta y QR)',
+                            'card_only' => 'Solo Tarjeta de Crédito/Débito (ATC)',
+                            'qr_only' => 'Solo Código QR Simple (BNB)',
+                        ];
+                    })
+                    ->default('all')
+                    ->required(),
                 Forms\Components\FileUpload::make('image_path')
                     ->image()
                     ->columnSpanFull()
