@@ -440,6 +440,15 @@ Route::prefix('public')->middleware('throttle:30,1')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Subscriptions API (v1)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('v1/subscriptions')->group(function () {
+    Route::get('validate-reactivation/{token}', [\App\Http\Controllers\Api\SubscriptionController::class, 'validateReactivation']);
+});
+
+/*
+|--------------------------------------------------------------------------
 | Domiciliación / Suscripción Recurrente (Público, sin auth requerida)
 | El donante no necesita estar registrado para suscribirse.
 |--------------------------------------------------------------------------
@@ -522,3 +531,20 @@ Route::prefix('webhooks/bnb')->middleware('throttle:60,1')->group(function () {
     Route::post('enroll',  [\App\Http\Controllers\BnbDomiciliacionWebhookController::class, 'enroll']);
     Route::post('payment', [\App\Http\Controllers\BnbDomiciliacionWebhookController::class, 'payment']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| ATC Cybersource 3DS2 Payment Routes (Isolated Module)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('v1/atc')->middleware('throttle:30,1')->group(function () {
+    Route::post('setup-authentication', [\App\Http\Controllers\Api\ATC\AtcPaymentController::class, 'setupAuthentication']);
+    Route::post('check-enrollment', [\App\Http\Controllers\Api\ATC\AtcPaymentController::class, 'checkEnrollment']);
+    Route::post('validate-challenge', [\App\Http\Controllers\Api\ATC\AtcPaymentController::class, 'validateChallenge']);
+    Route::post('process-payment', [\App\Http\Controllers\Api\ATC\AtcPaymentController::class, 'processPayment']);
+    Route::post('stepup-return', [\App\Http\Controllers\Api\ATC\AtcPaymentController::class, 'stepUpReturn']);
+    Route::get('stepup-return', [\App\Http\Controllers\Api\ATC\AtcPaymentController::class, 'stepUpReturn']);
+});
+
+Route::get('v1/subscriptions/validate-reactivation/{token}', [\App\Http\Controllers\Api\SubscriptionController::class, 'validateReactivation']);
+Route::post('v1/subscriptions/confirm-reactivation/{token}', [\App\Http\Controllers\Api\SubscriptionController::class, 'confirmReactivation']);

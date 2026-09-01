@@ -37,6 +37,8 @@ class PublicCampaignController extends Controller
                     'percentage' => $stats['percentage'],
                     'start_date' => $campaign->start_date ? $campaign->start_date->format('Y-m-d') : null,
                     'end_date' => $campaign->end_date ? $campaign->end_date->format('Y-m-d') : null,
+                    'allowed_frequencies' => $campaign->allowed_frequencies,
+                    'allowed_payment_methods' => $campaign->allowed_payment_methods,
                 ];
             });
 
