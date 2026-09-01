@@ -54,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
          * Confiar en el proxy inverso (Traefik) para que Laravel genere
          * URLs HTTPS correctas y evite Mixed Content errors.
          */
-        $middleware->trustProxies(at: '*');
+        $middleware->trustProxies(at: ['*']);
 
         /**
          * Le decimos a Laravel que use el guardián de Sanctum para
@@ -78,11 +78,13 @@ return Application::configure(basePath: dirname(__DIR__))
             '/api/public/*',
             '/api/webhooks/*',
             '/api/subscriptions/*',
+            'api/v1/subscriptions/*',
             '/api/subscribe',
             '/api/contact',
             '/api/track-visit',
             'api/webhooks/bnb', 
             'api/webhooks/*',
+            'api/v1/atc/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
