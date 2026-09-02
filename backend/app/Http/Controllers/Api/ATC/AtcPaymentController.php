@@ -51,12 +51,17 @@ class AtcPaymentController extends Controller
             'first_name' => 'nullable|string|max:100',
             'last_name' => 'nullable|string|max:100',
             'email' => 'nullable|email',
+            'ci' => 'nullable|string|max:50',
             'phone' => 'nullable|string|max:20',
             'address1' => 'nullable|string|max:150',
             'locality' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:50',
             'postal_code' => 'nullable|string|max:20',
             'country' => 'nullable|string|size:2',
+            'campaign_id' => 'nullable|integer|exists:campaigns,id',
+            'campaign_name' => 'nullable|string|max:100',
+            'program_id' => 'nullable|integer|exists:programs,id',
+            'is_recurring' => 'nullable|boolean',
             'returnUrl' => 'nullable|url',
         ]);
 
@@ -97,6 +102,7 @@ class AtcPaymentController extends Controller
             'first_name' => 'nullable|string|max:100',
             'last_name' => 'nullable|string|max:100',
             'email' => 'nullable|email',
+            'ci' => 'nullable|string|max:50',
             'phone' => 'nullable|string|max:20',
             'address1' => 'nullable|string|max:150',
             'locality' => 'nullable|string|max:100',
@@ -113,6 +119,7 @@ class AtcPaymentController extends Controller
             'specificationVersion' => 'nullable|string',
             'is_recurring' => 'nullable|boolean',
             'campaign_id' => 'nullable|integer|exists:campaigns,id',
+            'campaign_name' => 'nullable|string|max:100',
             'program_id' => 'nullable|integer|exists:programs,id',
         ]);
 

@@ -111,6 +111,7 @@ class Atc3dsService
                 'referenceId' => $data['referenceId'], // Obtenido en Paso 1
                 'returnUrl' => $data['returnUrl'] ?? config('app.url') . '/api/v1/atc/stepup-return',
             ],
+            'merchantDefinedInformation' => $this->buildMerchantDefinedInformation($data, !empty($data['is_recurring']), true),
         ];
 
         $maskedPayload = $payload;
@@ -499,12 +500,7 @@ class Atc3dsService
             'deviceInformation' => [
                 'fingerprintSessionId' => $rawSessionId,
             ],
-            'merchantDefinedInformation' => [
-                ['key' => 1, 'value' => 'Donaciones / ONGs'],
-                ['key' => 2, 'value' => 'Fundacion Nuestra Esperanza'],
-                ['key' => 9, 'value' => 'Pagina Web'],
-                ['key' => 90, 'value' => $isRecurring ? 'plan mensual' : 'pago unico'],
-            ],
+            'merchantDefinedInformation' => $this->buildMerchantDefinedInformation($data, $isRecurring, true),
         ];
 
         // Solicitar tokenización TMS si se requiere donación recurrente
@@ -558,83 +554,75 @@ class Atc3dsService
             'raw_response' => $resData,
         ]);
 
-        // 2. Si es recurrente, crear el Perfil de Pago (TMS) y la Suscripción
-        if ($isRecurring) {
-            $tokenInfo = $resData['tokenInformation'] ?? [];
-            $instrumentToken = $tokenInfo['paymentInstrument']['id'] ?? ('TMS-TOKEN-' . Str::random(12));
-            $customerToken = $tokenInfo['customer']['id'] ?? null;
+        // 2. Tokenización TMS: Crear o Actualizar Perfil de Pago si vino el Instrument Identifier
+        $instrumentId = $resData['tokenInformation']['instrumentIdentifier']['id'] ?? ($resData['paymentInformation']['instrumentIdentifier']['id'] ?? null);
+        $customerToken = $resData['tokenInformation']['customer']['id'] ?? ($resData['paymentInformation']['customer']['id'] ?? null);
+        $paymentInstrumentId = $resData['tokenInformation']['paymentInstrument']['id'] ?? ($resData['paymentInformation']['paymentInstrument']['id'] ?? null);
 
-            $profile = AtcPaymentProfile::create([
-                'user_id' => $data['user_id'] ?? null,
-                'customer_token' => $customerToken,
-                'payment_instrument_token' => $instrumentToken,
-                'card_type' => strtoupper($data['card_type'] ?? 'VISA'),
-                'card_last4' => substr($data['card_number'], -4),
-                'card_expiration_month' => $data['expiration_month'],
-                'card_expiration_year' => $data['expiration_year'],
-                'is_active' => true,
-            ]);
+        if ($instrumentId || $paymentInstrumentId) {
+            $paymentProfile = AtcPaymentProfile::updateOrCreate(
+                [
+                    'user_id' => $data['user_id'] ?? null,
+                    'customer_token' => $customerToken,
+                ],
+                [
+                    'payment_instrument_token' => $instrumentId ?? $paymentInstrumentId,
+                    'card_brand' => $cardType,
+                    'card_last_four' => substr($data['card_number'] ?? '', -4),
+                    'expiration_month' => $data['expiration_month'],
+                    'expiration_year' => $data['expiration_year'],
+                    'is_active' => true,
+                ]
+            );
 
-            $subscription = AtcSubscription::create([
-                'user_id' => $data['user_id'] ?? null,
-                'payment_profile_id' => $profile->id,
-                'campaign_id' => $data['campaign_id'] ?? null,
-                'program_id' => $data['program_id'] ?? null,
-                'amount' => $data['amount'],
-                'currency' => $data['currency'] ?? 'BOB',
-                'billing_day' => (int) date('j'),
-                'status' => 'active',
-                'next_billing_at' => now()->addMonth(),
-                'last_billed_at' => now(),
-                'ip_address' => $data['ip_address'] ?? null,
-                'user_agent' => $data['user_agent'] ?? null,
-                'accepted_terms_at' => now(),
-            ]);
+            // Si es suscripción recurrente, crear el registro de AtcSubscription
+            if ($isRecurring) {
+                $subscription = AtcSubscription::create([
+                    'user_id' => $data['user_id'] ?? null,
+                    'payment_profile_id' => $paymentProfile->id,
+                    'campaign_id' => $data['campaign_id'] ?? null,
+                    'program_id' => $data['program_id'] ?? null,
+                    'amount' => $data['amount'],
+                    'currency' => $data['currency'] ?? 'BOB',
+                    'frequency' => 'MONTHLY',
+                    'status' => 'ACTIVE',
+                    'last_billed_at' => now(),
+                    'next_billing_at' => now()->addMonth(),
+                ]);
 
-            // Crear la suscripción central en la tabla `subscriptions` para el panel Filament CMS
-            \App\Models\Subscription::create([
-                'user_id' => $data['user_id'] ?? null,
-                'campaign_id' => $data['campaign_id'] ?? null,
-                'amount' => $data['amount'],
-                'currency' => $data['currency'] ?? 'BOB',
-                'status' => 'active',
-                'next_charge_date' => now()->addMonth(),
-                'last_charge_date' => now(),
-                'cybersource_payment_token' => $instrumentToken,
-                'failed_attempts_count' => 0,
-                'ip_address' => $data['ip_address'] ?? null,
-                'user_agent' => $data['user_agent'] ?? null,
-                'accepted_terms_at' => now(),
-            ]);
-
-            $tx->update(['subscription_id' => $subscription->id]);
+                $tx->update(['subscription_id' => $subscription->id]);
+            }
         }
 
-        // 3. Disparar Evento para consolidación en la tabla central `donations` (Cumpliendo IA FUNDACIÓN condition #2)
+        // Disparar evento para consolidar en donations central y generar PDF
         event(new AtcPaymentCapturedEvent($tx));
 
         return [
             'success' => true,
             'status' => 'CAPTURED',
             'transactionId' => $tx->id,
-            'cybersourceRequestId' => $tx->cybersource_request_id,
-            'merchantReferenceNumber' => $tx->merchant_reference_number,
+            'merchantReferenceNumber' => $referenceNo,
             'amount' => $tx->amount,
             'currency' => $tx->currency,
-            'isRecurring' => $isRecurring,
+            'raw' => $resData,
         ];
     }
 
-    /**
-     * Procesamiento de Cobro Recurrente MIT (Merchant Initiated Transaction)
-     * Ejecutado automáticamente por el Scheduler/Cronjob usando el token TMS.
-     */
     public function processRecurringCharge(AtcSubscription $subscription): array
     {
-        if ($subscription->status !== 'active') {
+        return $this->processRecurringPayment($subscription);
+    }
+
+    /**
+     * Paso Especial: Cobro Recurrente Programado (MIT - Merchant Initiated Transaction)
+     * Ejecuta el cobro automático mensual utilizando el Payment Instrument Token de Cybersource TMS.
+     */
+    public function processRecurringPayment(AtcSubscription $subscription): array
+    {
+        if ($subscription->status !== 'ACTIVE') {
             return [
                 'success' => false,
-                'message' => "La suscripción #{$subscription->id} no está activa.",
+                'message' => "La suscripción #{$subscription->id} no está activa ({$subscription->status}).",
             ];
         }
 
@@ -648,6 +636,14 @@ class Atc3dsService
 
         $referenceNo = 'ATC-MIT-REF-' . $subscription->id . '-' . time();
         $user = $subscription->user;
+
+        $mitData = [
+            'user_id' => $subscription->user_id,
+            'campaign_id' => $subscription->campaign_id,
+            'email' => $user ? $user->email : null,
+            'phone' => $user ? $user->phone : null,
+            'ci' => $user ? $user->ci : null,
+        ];
 
         $payload = [
             'clientReferenceInformation' => [
@@ -677,6 +673,7 @@ class Atc3dsService
                     'country' => 'BO',
                 ],
             ],
+            'merchantDefinedInformation' => $this->buildMerchantDefinedInformation($mitData, true, false),
         ];
 
         $response = $this->client->post('/pts/v2/payments', $payload);
@@ -738,6 +735,137 @@ class Atc3dsService
             'subscriptionId' => $subscription->id,
             'amount' => $tx->amount,
         ];
+    }
+
+    /**
+     * Construye los 13 MDDs oficiales requeridos por ATC Red Enlace para la Vertical J (Servicios ONG - Rubro 8398).
+     *
+     * @param array $data Datos del contexto de pago / donación
+     * @param bool $isRecurring Indica si la donación es una suscripción recurrente
+     * @param bool $isInitialSeed Indica si es el primer pago semilla (CIT) o un cobro automático posterior (MIT)
+     * @return array Lista estructurada de merchantDefinedInformation para Cybersource
+     */
+    public function buildMerchantDefinedInformation(array $data, bool $isRecurring = false, bool $isInitialSeed = true): array
+    {
+        $user = auth('sanctum')->user() ?? (auth()->user() ?? (isset($data['user_id']) ? \App\Models\User::find($data['user_id']) : null));
+        $isLoggedIn = !is_null($user);
+
+        // MDD 1: ¿Usuario Logueado? (SI / NO)
+        $mdd1 = $isLoggedIn ? 'SI' : 'NO';
+
+        // MDD 2: Fecha creación de la cuenta (d/m/Y)
+        $mdd2 = ($isLoggedIn && $user->created_at)
+            ? $user->created_at->format('d/m/Y')
+            : now()->format('d/m/Y');
+
+        // MDD 4: Fecha de última donación (d/m/Y)
+        $lastDonationDate = now()->format('d/m/Y');
+        try {
+            if ($isLoggedIn) {
+                $lastTx = AtcTransaction::where('user_id', $user->id)
+                    ->where('status', 'CAPTURED')
+                    ->latest('id')
+                    ->first();
+                if ($lastTx && $lastTx->created_at) {
+                    $lastDonationDate = $lastTx->created_at->format('d/m/Y');
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fallback seguro a la fecha actual
+            $lastDonationDate = now()->format('d/m/Y');
+        }
+        $mdd4 = $lastDonationDate;
+
+        // MDD 5: Tiempo de registro de la cuenta en días (Entero)
+        $mdd5 = ($isLoggedIn && $user->created_at)
+            ? (string) $user->created_at->diffInDays(now())
+            : '0';
+
+        // MDD 7: Nombre del comercio (Razón social)
+        $mdd7 = config('services.atc.merchant_name', 'Fundacion Nuestra Esperanza');
+
+        // MDD 11: Documento del donante (CI/DNI o 'NA' para extranjeros/invitados)
+        $donorDoc = !empty($data['ci']) ? trim((string)$data['ci']) : (!empty($user->ci) ? trim((string)$user->ci) : 'NA');
+        $mdd11 = $donorDoc ?: 'NA';
+
+        // MDD 12: Teléfono alternativo
+        $phone = !empty($data['phone']) ? trim((string)$data['phone']) : (!empty($user->phone) ? trim((string)$user->phone) : '70000000');
+        $mdd12 = $phone ?: '70000000';
+
+        // MDD 15: ID de Usuario
+        if ($isLoggedIn) {
+            $mdd15 = "USER-{$user->id}";
+        } else {
+            $guestIdentifier = !empty($data['email']) ? substr(md5(strtolower(trim($data['email']))), 0, 8) : strtoupper(Str::random(8));
+            $mdd15 = "GUEST-{$guestIdentifier}";
+        }
+
+        // MDD 23: Identificador Red Social / Tipo de Login
+        $mdd23 = $isLoggedIn ? ($user->provider ?? 'Email') : 'Guest';
+
+        // MDD 87: ID del servicio / Campaña (Código asignado para identificar el servicio)
+        $campaignId = $data['campaign_id'] ?? null;
+        $mdd87 = !empty($campaignId) ? "CAMP-{$campaignId}" : 'CAMP-GRAL';
+
+        // MDD 88: Nombre del servicio / Campaña
+        $campaignName = $data['campaign_name'] ?? null;
+        if (!$campaignName && !empty($campaignId)) {
+            $campaign = \App\Models\Campaign::find($campaignId);
+            if ($campaign) {
+                $campaignName = $campaign->title ?? $campaign->name;
+            }
+        }
+        $mdd88 = $campaignName ?: 'Donacion General';
+
+        // MDD 90: Tipo de servicio ('Donacion Mensual' o 'Donacion Unica')
+        $mdd90 = $isRecurring ? 'Donacion Mensual' : 'Donacion Unica';
+
+        // MDD 95: returnUrl (URL de retorno del comercio)
+        $mdd95 = config('app.frontend_url', config('app.url')) . '/donar';
+
+        // MDD 97: Tipo de Transacción para Débito Automático ('Semilla' o 'Recurrente')
+        $mdd97 = $isRecurring ? ($isInitialSeed ? 'Semilla' : 'Recurrente') : 'Semilla';
+
+        // Lista sinóptica con truncamiento de seguridad estricto a 50 chars (100 para URLs)
+        $rawMdds = [
+            1  => $this->sanitizeMddValue($mdd1, 5),
+            2  => $this->sanitizeMddValue($mdd2, 10),
+            4  => $this->sanitizeMddValue($mdd4, 10),
+            5  => $this->sanitizeMddValue($mdd5, 10),
+            7  => $this->sanitizeMddValue($mdd7, 50),
+            11 => $this->sanitizeMddValue($mdd11, 50),
+            12 => $this->sanitizeMddValue($mdd12, 50),
+            15 => $this->sanitizeMddValue($mdd15, 50),
+            23 => $this->sanitizeMddValue($mdd23, 50),
+            87 => $this->sanitizeMddValue($mdd87, 50),
+            88 => $this->sanitizeMddValue($mdd88, 50),
+            90 => $this->sanitizeMddValue($mdd90, 50),
+            95 => $this->sanitizeMddValue($mdd95, 100),
+            97 => $this->sanitizeMddValue($mdd97, 50),
+        ];
+
+        $formatted = [];
+        foreach ($rawMdds as $key => $val) {
+            $formatted[] = [
+                'key' => (string) $key,
+                'value' => (string) $val,
+            ];
+        }
+
+        return $formatted;
+    }
+
+    /**
+     * Sanitiza y trunca el valor de un MDD para evitar errores de validación de Cybersource.
+     */
+    protected function sanitizeMddValue(?string $value, int $maxLength = 50): string
+    {
+        if (is_null($value) || $value === '') {
+            return 'NA';
+        }
+
+        $cleaned = trim(preg_replace('/[\r\n\t]+/', ' ', (string) $value));
+        return mb_substr($cleaned, 0, $maxLength, 'UTF-8');
     }
 
     /**
