@@ -57,8 +57,11 @@ class ConsolidateAtcDonationListener
         // If user is identified, trigger certificate generation
         if ($user && $user->email) {
             try {
-                GenerarCertificadoJob::dispatch($donationId);
-                Log::info("GenerarCertificadoJob dispatched for ATC donation ID: {$donationId}");
+                $donation = \App\Models\Donation::find($donationId);
+                if ($donation) {
+                    GenerarCertificadoJob::dispatch($donation);
+                    Log::info("GenerarCertificadoJob dispatched for ATC donation ID: {$donationId}");
+                }
             } catch (\Throwable $e) {
                 Log::error("Failed to dispatch GenerarCertificadoJob: " . $e->getMessage());
             }

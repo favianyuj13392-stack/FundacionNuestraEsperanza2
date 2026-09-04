@@ -11,29 +11,22 @@ class BnbWebhookController extends Controller
 {
     public function handle(Request $request, \App\Services\BnbDonationService $bnbService)
     {
-        // === TEMPORARY BYPASS PARA REGISTRO DE WEBHOOK EN PRODUCCION ===
-        return response()->json(['success' => true, 'message' => 'OK']);
-        // ===============================================================
+        // 1. Log the incoming webhook payload for full audit and debugging
+        $payload = $request->all();
+        if (empty($payload) && $request->getContent()) {
+            $payload = json_decode($request->getContent(), true) ?? [];
+        }
+        Log::info('BNB Webhook Received', ['payload' => $payload, 'raw' => $request->getContent()]);
 
-        // 1. SECURITY: Trust but Verify
-        // El secret por URL fue eliminado para evitar fricción con el banco.
-        // La seguridad está garantizada porque más abajo consultamos activamente
-        // el estado del QRId directamente a los servidores del BNB.
-
-        // Log the incoming webhook for debugging
-        Log::info('BNB Webhook Received', $request->all());
-
-        $qrId = $request->input('QRId');
+        $qrId = $payload['QRId'] ?? ($payload['qrId'] ?? ($payload['QrId'] ?? ($payload['id'] ?? null)));
         
         if (!$qrId) {
+            Log::warning('BNB Webhook: QRId missing from payload', ['payload' => $payload]);
             return response()->json(['success' => false, 'message' => 'QRId missing'], 400);
         }
 
         // 2. TRUST BUT VERIFY: Check status with BNB directly
         try {
-            // We ignore mock mode logic here, we want real confirmation if possible.
-            // If checking status fails (e.g. timeout), we might decide to fail or proceed with caution.
-            // For now, strict: if we can't verify, we don't process.
             $statusData = $bnbService->checkStatus($qrId);
             
             if (!$statusData) {
@@ -45,8 +38,7 @@ class BnbWebhookController extends Controller
             $statusId = $statusData['statusId'] ?? null;
             if ($statusId != 2) {
                 Log::warning("BNB Webhook: QR {$qrId} status mismatch in verification. BNB says: {$statusId}");
-                // If ID is 1 (Not Used), maybe it was a duplicate call or confusion. We reject.
-                 return response()->json(['success' => false, 'message' => 'Status Mismatch'], 409);
+                return response()->json(['success' => false, 'message' => 'Status Mismatch'], 409);
             }
 
             Log::info("BNB Webhook: Verified QR {$qrId} is PAID (status 2). Proceeding.");
