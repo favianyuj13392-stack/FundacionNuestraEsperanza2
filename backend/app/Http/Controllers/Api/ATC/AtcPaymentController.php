@@ -154,6 +154,8 @@ class AtcPaymentController extends Controller
 
         return response($html, 200)
             ->header('Content-Type', 'text/html')
+            ->header('X-Frame-Options', 'ALLOWALL')
+            ->header('Content-Security-Policy', "frame-ancestors 'self' https://fundacion-nuestra-esperanza.cloud https://*.fundacion-nuestra-esperanza.cloud https://*.cardinalcommerce.com https://*.cybersource.com http://localhost:*")
             ->header('Access-Control-Allow-Origin', '*')
             ->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
             ->header('Access-Control-Allow-Headers', '*')
