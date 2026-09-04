@@ -110,7 +110,7 @@ export interface AtcProcessPaymentResponse {
   currency?: string;
   isRecurring?: boolean;
   message?: string;
-  error?: any;
+  error?: unknown;
 }
 
 const getApiBaseUrl = () => {
@@ -118,7 +118,7 @@ const getApiBaseUrl = () => {
   return url.endsWith('/api') ? url : `${url}/api`;
 };
 
-async function safePostJson<T>(endpoint: string, bodyData: any): Promise<T> {
+async function safePostJson<T>(endpoint: string, bodyData: unknown): Promise<T> {
   const controller = new AbortController();
   // 120s timeout to allow smooth execution in local environment and sandbox latency
   const timeoutId = setTimeout(() => controller.abort(), 120000);
@@ -138,10 +138,11 @@ async function safePostJson<T>(endpoint: string, bodyData: any): Promise<T> {
       json.message = json.error || `HTTP ${res.status}: Error en el servidor de pasarela.`;
     }
     return json as T;
-  } catch (err: any) {
+  } catch (err: unknown) {
     clearTimeout(timeoutId);
     console.error(`[ATC Service Error] ${endpoint}:`, err);
-    if (err.name === 'AbortError') {
+    const errorObj = err as { name?: string; message?: string };
+    if (errorObj?.name === 'AbortError') {
       return {
         success: false,
         message: 'Tiempo de espera agotado al conectar con el servidor de pagos. Por favor intente de nuevo.',

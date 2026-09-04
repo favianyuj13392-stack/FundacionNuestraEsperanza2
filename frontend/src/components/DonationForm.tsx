@@ -46,9 +46,9 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
     const [atcStatusMsg, setAtcStatusMsg] = useState('');
     
     // Contextual Campaign Data
-    const [campaign, setCampaign] = useState<any>(null);
+    const [campaign, setCampaign] = useState<Record<string, unknown> | null>(null);
     const [hasDraft, setHasDraft] = useState(false);
-    const [reactivationData, setReactivationData] = useState<any>(null);
+    const [reactivationData, setReactivationData] = useState<Record<string, unknown> | null>(null);
     
     const cardFormRef = useRef<AtcCreditCardFormRef>(null);
 
@@ -77,8 +77,8 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                     if (data.data.donor_email) setDonorEmail(data.data.donor_email);
                     if (data.data.campaign_id) {
                         const campaigns = await donationService.getCampaigns();
-                        const currentCampaign = campaigns.find((c: any) => c.id === data.data.campaign_id);
-                        if (currentCampaign) setCampaign(currentCampaign);
+                        const currentCampaign = campaigns.find((c: { id: number }) => c.id === data.data.campaign_id);
+                        if (currentCampaign) setCampaign(currentCampaign as unknown as Record<string, unknown>);
                     }
                 } else {
                     setError(data.message || "El enlace de reactivación es inválido o ha expirado.");
@@ -127,22 +127,23 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
 
                 if (campaignId) {
                     const campaigns = await donationService.getCampaigns();
-                    const currentCampaign = campaigns.find((c: any) => c.id === campaignId);
+                    const currentCampaign = campaigns.find((c: { id: number }) => c.id === campaignId);
                     if (currentCampaign) {
-                        setCampaign(currentCampaign);
+                        setCampaign(currentCampaign as unknown as Record<string, unknown>);
                         
                         // Enforce default rules
-                        if (currentCampaign.allowed_frequencies === 'monthly_only') {
+                        const campObj = currentCampaign as { allowed_frequencies?: string, allowed_payment_methods?: string };
+                        if (campObj.allowed_frequencies === 'monthly_only') {
                             setFrequency('monthly');
                             setPaymentMethod('card'); // QR is not monthly
-                        } else if (currentCampaign.allowed_frequencies === 'once_only') {
+                        } else if (campObj.allowed_frequencies === 'once_only') {
                             setFrequency('once');
                         }
                         
-                        if (currentCampaign.allowed_payment_methods === 'qr_only' && currentCampaign.allowed_frequencies !== 'monthly_only') {
+                        if (campObj.allowed_payment_methods === 'qr_only' && campObj.allowed_frequencies !== 'monthly_only') {
                             setPaymentMethod('qr');
                             setFrequency('once');
-                        } else if (currentCampaign.allowed_payment_methods === 'card_only') {
+                        } else if (campObj.allowed_payment_methods === 'card_only') {
                             setPaymentMethod('card');
                         }
                     }
