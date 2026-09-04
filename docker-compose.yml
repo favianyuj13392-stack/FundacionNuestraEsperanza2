@@ -42,9 +42,9 @@ services:
       - "traefik.http.routers.fundacion-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.fundacion-api.middlewares=security-headers@file,compress@file,fundacion-ratelimit"
       - "traefik.http.services.fundacion-api.loadbalancer.server.port=80"
-      # Rate Limit Middleware (API)
-      - "traefik.http.middlewares.fundacion-ratelimit.ratelimit.average=20"
-      - "traefik.http.middlewares.fundacion-ratelimit.ratelimit.burst=50"
+      # Rate Limit Middleware (API & Admin)
+      - "traefik.http.middlewares.fundacion-ratelimit.ratelimit.average=100"
+      - "traefik.http.middlewares.fundacion-ratelimit.ratelimit.burst=200"
     depends_on:
       - app
 
