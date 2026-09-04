@@ -52,9 +52,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         /**
          * Confiar en el proxy inverso (Traefik) para que Laravel genere
-         * URLs HTTPS correctas y evite Mixed Content errors.
+         * URLs HTTPS correctas y valide firmas temporales de Livewire.
          */
-        $middleware->trustProxies(at: ['*']);
+        $middleware->trustProxies(
+            at: '*',
+            headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR |
+                     \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST |
+                     \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
+                     \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO
+        );
 
         /**
          * Le decimos a Laravel que use el guardián de Sanctum para
