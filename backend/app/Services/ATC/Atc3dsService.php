@@ -575,10 +575,10 @@ class Atc3dsService
                 ],
                 [
                     'payment_instrument_token' => $instrumentId ?? $paymentInstrumentId,
-                    'card_brand' => $cardType,
-                    'card_last_four' => substr($data['card_number'] ?? '', -4),
-                    'expiration_month' => $data['expiration_month'],
-                    'expiration_year' => $data['expiration_year'],
+                    'card_type' => $cardType,
+                    'card_last4' => substr($data['card_number'] ?? '', -4),
+                    'card_expiration_month' => $data['expiration_month'],
+                    'card_expiration_year' => $data['expiration_year'],
                     'is_active' => true,
                 ]
             );
