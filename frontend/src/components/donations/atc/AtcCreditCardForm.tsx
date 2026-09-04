@@ -220,10 +220,13 @@ export const AtcCreditCardForm = forwardRef<AtcCreditCardFormRef, AtcCreditCardF
     updateStatus('AUTHENTICATING', 'Validando confirmación de desafío con el banco emisor...');
 
     try {
+      const cleanCard = cardNumber.replace(/\s+/g, '');
       // 3. Paso 5: Validate Challenge Backend
       const valRes = await atcService.validateChallenge({
         authenticationTransactionId: enrollmentResult.authenticationTransactionId,
         merchantReferenceNumber: setupData?.merchantReferenceNumber,
+        card_number: cleanCard,
+        card_type: getCardType(cleanCard),
       });
 
       if (!valRes.success) {

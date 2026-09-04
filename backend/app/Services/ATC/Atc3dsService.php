@@ -190,7 +190,7 @@ class Atc3dsService
                 'success' => true,
                 'isChallengeRequired' => false,
                 'status' => 'AUTHENTICATION_SUCCESSFUL',
-                'eci' => $normalizedEci ?: (str_starts_with($cardNum, '5') ? '02' : '05'),
+                'eci' => $normalizedEci ?: (str_starts_with($cardNum, '5') ? '02' : (str_starts_with($cardNum, '3') ? '06' : '05')),
                 'cavv' => $cavv,
                 'ucafAuthenticationData' => $authInfo['ucafAuthenticationData'] ?? null,
                 'ucafCollectionIndicator' => $ucafIndicator,
@@ -260,7 +260,8 @@ class Atc3dsService
         $normalizedEci = is_numeric($rawEci) ? str_pad((string)((int)$rawEci), 2, '0', STR_PAD_LEFT) : null;
         $cavv = $authInfo['cavv'] ?? $authInfo['ucafAuthenticationData'] ?? $authInfo['token'] ?? null;
         $ucafIndicator = $authInfo['ucafCollectionIndicator'] ?? '2';
-        $cardType = $data['card_type'] ?? 'VISA';
+        $cardNum = $data['card_number'] ?? '';
+        $cardType = $data['card_type'] ?? ($data['card_brand'] ?? (str_starts_with($cardNum, '5') ? 'MASTERCARD' : (str_starts_with($cardNum, '3') ? 'AMEX' : 'VISA')));
 
         $isAuthentic = ($status === 'AUTHENTICATION_SUCCESSFUL') && $this->isEciAuthenticAndProtected($cardType, $rawEci, $cavv, $ucafIndicator);
 
@@ -278,11 +279,13 @@ class Atc3dsService
             ];
         }
 
+        $isMaster = str_contains(strtoupper($cardType), 'MASTER') || str_starts_with($cardNum, '5') || $normalizedEci === '02' || $normalizedEci === '01';
+
         return [
             'success' => true,
             'isChallengeRequired' => false,
             'status' => $status,
-            'eci' => $normalizedEci ?: '05',
+            'eci' => $normalizedEci ?: ($isMaster ? '02' : '05'),
             'cavv' => $cavv,
             'ucafAuthenticationData' => $authInfo['ucafAuthenticationData'] ?? null,
             'ucafCollectionIndicator' => $ucafIndicator,
@@ -304,19 +307,19 @@ class Atc3dsService
         ?string $ucafIndicator = null,
         ?string $veresEnrolled = null
     ): bool {
+        // Normalizar ECI numérico a 2 dígitos ('5' -> '05', '2' -> '02', '7' -> '07', '0' -> '00')
+        $normalizedEci = null;
+        if (!is_null($rawEci) && is_numeric($rawEci)) {
+            $normalizedEci = str_pad((string)((int)$rawEci), 2, '0', STR_PAD_LEFT);
+        }
+
         $cardUpper = strtoupper($cardType);
-        $isMaster = str_contains($cardUpper, 'MASTER') || str_starts_with($cardUpper, '5');
+        $isMaster = str_contains($cardUpper, 'MASTER') || str_starts_with($cardUpper, '5') || $normalizedEci === '02' || $normalizedEci === '01' || $ucafIndicator === '2';
         $isAmex = str_contains($cardUpper, 'AMEX') || str_starts_with($cardUpper, '3');
 
         // Si veresEnrolled es 'N' o 'R' (Rechazado / No enrolado), es inválido de inmediato
         if (in_array(strtoupper((string)$veresEnrolled), ['N', 'R'])) {
             return false;
-        }
-
-        // Normalizar ECI numérico a 2 dígitos ('5' -> '05', '2' -> '02', '7' -> '07', '0' -> '00')
-        $normalizedEci = null;
-        if (!is_null($rawEci) && is_numeric($rawEci)) {
-            $normalizedEci = str_pad((string)((int)$rawEci), 2, '0', STR_PAD_LEFT);
         }
 
         // Filtro estricto por franquicia
@@ -335,12 +338,17 @@ class Atc3dsService
             }
             return false;
         } elseif ($isAmex) {
-            // American Express: Válido solo si ECI es '05' o '06' Y tiene CAVV.
-            // ECI '07', '00', nulos son estrictamente RECHAZADOS.
+            // American Express: Válido si ECI es '05' o '06' con CAVV, o si Cybersource generó Token 3DS criptográfico (SafeKey Attempt ECI 06)
             if ($normalizedEci === '07' || $normalizedEci === '00') {
                 return false;
             }
-            return in_array($normalizedEci, ['05', '06']) && !empty($cavv);
+            if (in_array($normalizedEci, ['05', '06']) && !empty($cavv)) {
+                return true;
+            }
+            if (!empty($cavv) && strlen((string)$cavv) > 30) {
+                return true; // Amex SafeKey Token Criptográfico (ECI 06 Attempt)
+            }
+            return false;
         } else {
             // VISA: Válido solo si ECI es '05' o '06' Y tiene CAVV.
             // ECI '07', '00', nulos son estrictamente RECHAZADOS.
@@ -619,7 +627,7 @@ class Atc3dsService
      */
     public function processRecurringPayment(AtcSubscription $subscription): array
     {
-        if ($subscription->status !== 'ACTIVE') {
+        if (strtoupper((string)$subscription->status) !== 'ACTIVE') {
             return [
                 'success' => false,
                 'message' => "La suscripción #{$subscription->id} no está activa ({$subscription->status}).",
@@ -652,7 +660,6 @@ class Atc3dsService
             'processingInformation' => [
                 'capture' => true,
                 'commerceIndicator' => 'recurring',
-                'paymentSolution' => 'token',
             ],
             'paymentInformation' => [
                 'instrumentIdentifier' => [
