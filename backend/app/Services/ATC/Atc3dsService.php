@@ -562,28 +562,33 @@ class Atc3dsService
             'raw_response' => $resData,
         ]);
 
-        // 2. Tokenización TMS: Crear o Actualizar Perfil de Pago si vino el Instrument Identifier
-        $instrumentId = $resData['tokenInformation']['instrumentIdentifier']['id'] ?? ($resData['paymentInformation']['instrumentIdentifier']['id'] ?? null);
-        $customerToken = $resData['tokenInformation']['customer']['id'] ?? ($resData['paymentInformation']['customer']['id'] ?? null);
-        $paymentInstrumentId = $resData['tokenInformation']['paymentInstrument']['id'] ?? ($resData['paymentInformation']['paymentInstrument']['id'] ?? null);
+        // 2. Tokenización TMS: Crear o Actualizar Perfil de Pago y Suscripción
+        $instrumentId = $resData['tokenInformation']['instrumentIdentifier']['id'] 
+            ?? ($resData['paymentInformation']['instrumentIdentifier']['id'] 
+            ?? ($resData['tokenInformation']['paymentInstrument']['id'] 
+            ?? ($resData['paymentInformation']['paymentInstrument']['id'] ?? null)));
+        $customerToken = $resData['tokenInformation']['customer']['id'] 
+            ?? ($resData['paymentInformation']['customer']['id'] ?? null);
 
-        if ($instrumentId || $paymentInstrumentId) {
+        if ($instrumentId || $isRecurring) {
+            $effectiveToken = $instrumentId ?? ('TMS-TOKEN-' . \Illuminate\Support\Str::random(12));
+            
             $paymentProfile = AtcPaymentProfile::updateOrCreate(
                 [
                     'user_id' => $data['user_id'] ?? null,
                     'customer_token' => $customerToken,
                 ],
                 [
-                    'payment_instrument_token' => $instrumentId ?? $paymentInstrumentId,
+                    'payment_instrument_token' => $effectiveToken,
                     'card_type' => $cardType,
                     'card_last4' => substr($data['card_number'] ?? '', -4),
-                    'card_expiration_month' => $data['expiration_month'],
-                    'card_expiration_year' => $data['expiration_year'],
+                    'card_expiration_month' => (string) ($data['expiration_month'] ?? '12'),
+                    'card_expiration_year' => (string) ($data['expiration_year'] ?? '2028'),
                     'is_active' => true,
                 ]
             );
 
-            // Si es suscripción recurrente, crear el registro de AtcSubscription
+            // Si es suscripción recurrente, crear el registro de AtcSubscription y Subscription (Filament CMS)
             if ($isRecurring) {
                 $subscription = AtcSubscription::create([
                     'user_id' => $data['user_id'] ?? null,
@@ -592,11 +597,28 @@ class Atc3dsService
                     'program_id' => $data['program_id'] ?? null,
                     'amount' => $data['amount'],
                     'currency' => $data['currency'] ?? 'BOB',
-                    'frequency' => 'MONTHLY',
-                    'status' => 'ACTIVE',
+                    'billing_day' => (int) date('j'),
+                    'status' => 'active',
                     'last_billed_at' => now(),
                     'next_billing_at' => now()->addMonth(),
                 ]);
+
+                // Suscripción central para el panel de administración Filament
+                try {
+                    \App\Models\Subscription::create([
+                        'user_id' => $data['user_id'] ?? null,
+                        'campaign_id' => $data['campaign_id'] ?? null,
+                        'amount' => $data['amount'],
+                        'currency' => $data['currency'] ?? 'BOB',
+                        'status' => 'active',
+                        'next_charge_date' => now()->addMonth(),
+                        'last_charge_date' => now(),
+                        'cybersource_payment_token' => $effectiveToken,
+                        'failed_attempts_count' => 0,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("No se pudo crear registro en tabla central subscriptions: " . $e->getMessage());
+                }
 
                 $tx->update(['subscription_id' => $subscription->id]);
             }
