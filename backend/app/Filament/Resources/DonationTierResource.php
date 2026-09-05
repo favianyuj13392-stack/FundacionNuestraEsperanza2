@@ -26,16 +26,16 @@ class DonationTierResource extends Resource
                 Forms\Components\Select::make('currency_id')
                     ->label('Moneda')
                     ->options([
-                        2 => '🇧🇴 Bolivianos (BOB - Bs.)',
-                        1 => '🇺🇸 Dólares Estadounidenses (USD - $)',
+                        1 => '🇧🇴 Bolivianos (BOB - Bs.)',
+                        2 => '🇺🇸 Dólares Estadounidenses (USD - $)',
                     ])
-                    ->default(2)
+                    ->default(1)
                     ->required()
                     ->live(),
                 Forms\Components\TextInput::make('amount')
                     ->required()
                     ->numeric()
-                    ->prefix(fn (Forms\Get $get) => $get('currency_id') == 1 ? '$' : 'Bs')
+                    ->prefix(fn (Forms\Get $get) => $get('currency_id') == 2 ? '$' : 'Bs')
                     ->label('Monto'),
                 Forms\Components\TextInput::make('label')
                     ->required()
@@ -69,7 +69,7 @@ class DonationTierResource extends Resource
                     })
                     ->label('Moneda'),
                 Tables\Columns\TextColumn::make('amount')
-                    ->formatStateUsing(fn ($record) => ($record->currency_id == 1 ? '$ ' : 'Bs ') . number_format((float)$record->amount, 2))
+                    ->formatStateUsing(fn ($record) => ($record->currency_id == 2 ? '$ ' : 'Bs ') . number_format((float)$record->amount, 2))
                     ->sortable()
                     ->label('Monto'),
                 Tables\Columns\TextColumn::make('label')
@@ -92,8 +92,8 @@ class DonationTierResource extends Resource
                 Tables\Filters\SelectFilter::make('currency_id')
                     ->label('Filtrar por Moneda')
                     ->options([
-                        2 => 'Bolivianos (BOB)',
-                        1 => 'Dólares (USD)',
+                        1 => 'Bolivianos (BOB)',
+                        2 => 'Dólares (USD)',
                     ]),
             ])
             ->actions([

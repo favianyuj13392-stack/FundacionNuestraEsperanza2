@@ -24,9 +24,9 @@ class ListDonationTiers extends ListRecords
         return [
             'all' => Tab::make('Todos'),
             'bob' => Tab::make('🇧🇴 Bolivianos (BOB)')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('currency_id', 2)),
-            'usd' => Tab::make('🇺🇸 Dólares (USD)')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('currency_id', 1)),
+            'usd' => Tab::make('🇺🇸 Dólares (USD)')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('currency_id', 2)),
         ];
     }
 }

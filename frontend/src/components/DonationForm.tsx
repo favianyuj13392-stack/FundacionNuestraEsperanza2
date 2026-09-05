@@ -200,8 +200,9 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
 
                         options.forEach((tier) => {
                             const amt = parseFloat(tier.amount).toString();
-                            // Currency 1 is USD, Currency 2 is BOB
-                            if (tier.currency_id === 1) {
+                            // In DB: Currency 2 is USD, Currency 1 is BOB
+                            const isUsd = tier.currency_id === 2 || (tier as any).currency?.iso_code === 'USD';
+                            if (isUsd) {
                                 usdTiers.push({ amount: amt, label: tier.label && !tier.label.includes('$') ? `${tier.label} ($${amt})` : `$${amt} USD` });
                             } else {
                                 bobTiers.push({ amount: amt, label: tier.label && !tier.label.includes('Bs') ? `${tier.label} (${amt} Bs)` : `${amt} Bs` });
