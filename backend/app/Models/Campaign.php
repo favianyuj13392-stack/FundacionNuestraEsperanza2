@@ -25,6 +25,7 @@ class Campaign extends Model
         'report_pdf_path',
         'allowed_frequencies',
         'allowed_payment_methods',
+        'allowed_currencies',
     ];
 
     /**

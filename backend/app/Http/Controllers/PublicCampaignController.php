@@ -39,6 +39,7 @@ class PublicCampaignController extends Controller
                     'end_date' => $campaign->end_date ? $campaign->end_date->format('Y-m-d') : null,
                     'allowed_frequencies' => $campaign->allowed_frequencies,
                     'allowed_payment_methods' => $campaign->allowed_payment_methods,
+                    'allowed_currencies' => $campaign->allowed_currencies ?? 'all',
                 ];
             });
 

@@ -12,6 +12,40 @@ interface DonationFormProps {
     campaignIdProp?: number;
 }
 
+interface ReactivationData {
+    amount?: number | string;
+    currency?: string;
+    donor_name?: string;
+    donor_email?: string;
+    campaign_id?: number;
+    campaign_name?: string;
+    has_saved_card?: boolean;
+}
+
+interface CampaignData {
+    id: number;
+    title?: string;
+    allowed_frequencies?: string;
+    allowed_payment_methods?: string;
+    allowed_currencies?: string;
+    [key: string]: unknown;
+}
+
+const PRESET_TIERS: Record<'Bs' | 'USD', Array<{ amount: string; label: string }>> = {
+    Bs: [
+        { amount: '50', label: '50 Bs' },
+        { amount: '100', label: '100 Bs' },
+        { amount: '200', label: '200 Bs' },
+        { amount: '500', label: '500 Bs' },
+    ],
+    USD: [
+        { amount: '10', label: '$10 USD' },
+        { amount: '25', label: '$25 USD' },
+        { amount: '50', label: '$50 USD' },
+        { amount: '100', label: '$100 USD' },
+    ],
+};
+
 const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal = false, campaignIdProp }) => {
     const { user } = useAuth();
     const router = useRouter();
@@ -23,10 +57,9 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
     const [step, setStep] = useState<1 | 2 | 3>(1);
 
     // Data States
-    const [tiers, setTiers] = useState<DonationTier[]>([]);
-    const [selectedTier, setSelectedTier] = useState<number | null>(null);
+    const [selectedPreset, setSelectedPreset] = useState<string>('100');
     const [customAmount, setCustomAmount] = useState<string>('');
-    const [customCurrency, setCustomCurrency] = useState<'Bs' | 'USD'>('Bs');
+    const [currency, setCurrency] = useState<'Bs' | 'USD'>('Bs');
     const [frequency, setFrequency] = useState<'once' | 'monthly'>('monthly');
     const [paymentMethod, setPaymentMethod] = useState<'card' | 'qr'>('card');
     const [isAnonymous, setIsAnonymous] = useState(false);
@@ -46,9 +79,9 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
     const [atcStatusMsg, setAtcStatusMsg] = useState('');
     
     // Contextual Campaign Data
-    const [campaign, setCampaign] = useState<Record<string, unknown> | null>(null);
+    const [campaign, setCampaign] = useState<CampaignData | null>(null);
     const [hasDraft, setHasDraft] = useState(false);
-    const [reactivationData, setReactivationData] = useState<Record<string, unknown> | null>(null);
+    const [reactivationData, setReactivationData] = useState<ReactivationData | null>(null);
     
     const cardFormRef = useRef<AtcCreditCardFormRef>(null);
 
@@ -68,17 +101,17 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                     setPaymentMethod('card');
                     if (data.data.amount) {
                         setCustomAmount(data.data.amount.toString());
-                        setSelectedTier(null);
+                        setSelectedPreset('');
                     }
                     if (data.data.currency) {
-                        setCustomCurrency(data.data.currency === 'USD' ? 'USD' : 'Bs');
+                        setCurrency(data.data.currency === 'USD' ? 'USD' : 'Bs');
                     }
                     if (data.data.donor_name) setDonorName(data.data.donor_name);
                     if (data.data.donor_email) setDonorEmail(data.data.donor_email);
                     if (data.data.campaign_id) {
                         const campaigns = await donationService.getCampaigns();
                         const currentCampaign = campaigns.find((c: { id: number }) => c.id === data.data.campaign_id);
-                        if (currentCampaign) setCampaign(currentCampaign as unknown as Record<string, unknown>);
+                        if (currentCampaign) setCampaign(currentCampaign as unknown as CampaignData);
                     }
                 } else {
                     setError(data.message || "El enlace de reactivación es inválido o ha expirado.");
@@ -120,22 +153,17 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
     useEffect(() => {
         const fetchOptionsAndCampaign = async () => {
             try {
-                const data = await donationService.getOptions();
-                setTiers(data);
-                if (data.length > 1) setSelectedTier(data[1].id);
-                else if (data.length > 0) setSelectedTier(data[0].id);
-
                 if (campaignId) {
                     const campaigns = await donationService.getCampaigns();
                     const currentCampaign = campaigns.find((c: { id: number }) => c.id === campaignId);
                     if (currentCampaign) {
-                        setCampaign(currentCampaign as unknown as Record<string, unknown>);
+                        setCampaign(currentCampaign as unknown as CampaignData);
                         
                         // Enforce default rules
-                        const campObj = currentCampaign as { allowed_frequencies?: string, allowed_payment_methods?: string };
+                        const campObj = currentCampaign as { allowed_frequencies?: string; allowed_payment_methods?: string; allowed_currencies?: string };
                         if (campObj.allowed_frequencies === 'monthly_only') {
                             setFrequency('monthly');
-                            setPaymentMethod('card'); // QR is not monthly
+                            setPaymentMethod('card');
                         } else if (campObj.allowed_frequencies === 'once_only') {
                             setFrequency('once');
                         }
@@ -143,7 +171,15 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                         if (campObj.allowed_payment_methods === 'qr_only' && campObj.allowed_frequencies !== 'monthly_only') {
                             setPaymentMethod('qr');
                             setFrequency('once');
+                            setCurrency('Bs');
                         } else if (campObj.allowed_payment_methods === 'card_only') {
+                            setPaymentMethod('card');
+                        }
+
+                        if (campObj.allowed_currencies === 'bob_only') {
+                            setCurrency('Bs');
+                        } else if (campObj.allowed_currencies === 'usd_only') {
+                            setCurrency('USD');
                             setPaymentMethod('card');
                         }
                     }
@@ -156,22 +192,17 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                 }
 
             } catch (err) {
-                console.error("Failed to fetch donation tiers", err);
-                setTiers([
-                    { id: 1, amount: "50", label: "Donación", currency_id: 1 },
-                    { id: 2, amount: "100", label: "Gran Ayuda", currency_id: 1 },
-                    { id: 3, amount: "200", label: "Padrino", currency_id: 1 },
-                ]);
-                setSelectedTier(2);
+                console.error("Failed to fetch campaign details", err);
             }
         };
         fetchOptionsAndCampaign();
     }, [campaignId]);
 
-    // Enforce QR -> Once only
+    // Enforce QR -> Once only and BOB only
     useEffect(() => {
         if (paymentMethod === 'qr') {
             setFrequency('once');
+            setCurrency('Bs');
         }
     }, [paymentMethod]);
 
@@ -217,9 +248,9 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
         return () => clearInterval(interval);
     }, [step, paymentMethod, qrData, status, frequency]);
 
-    const finalAmountStr = selectedTier ? tiers.find(t => t.id === selectedTier)?.amount : customAmount;
+    const finalAmountStr = customAmount || selectedPreset;
     const finalAmount = parseFloat(finalAmountStr || '0');
-    const currencyStr = selectedTier ? (tiers.find(t => t.id === selectedTier)?.currency_id === 1 ? 'Bs' : 'USD') : customCurrency;
+    const currencyStr = currency;
 
     // --- Handlers ---
     const handleNextToStep2 = async () => {
@@ -303,11 +334,7 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                 if (!details || !details.email) throw new Error("Faltan datos requeridos para donación mensual");
                 res = await donationService.requestSubscriptionQr(finalAmount, details, campaignId);
             } else {
-                if (selectedTier) {
-                    res = await donationService.requestQr(selectedTier, undefined, isAnonymous, details, campaignId);
-                } else {
-                    res = await donationService.requestQr(undefined, finalAmount, isAnonymous, details, campaignId);
-                }
+                res = await donationService.requestQr(undefined, finalAmount, isAnonymous, details, campaignId);
             }
             
             setQrData(res);
@@ -352,8 +379,8 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
             try {
                 const draft = JSON.parse(draftStr);
                 setCustomAmount(draft.amount.toString());
-                setCustomCurrency(draft.currency);
-                setSelectedTier(null);
+                setCurrency(draft.currency === 'USD' ? 'USD' : 'Bs');
+                setSelectedPreset('');
                 setFrequency(draft.frequency);
                 setPaymentMethod(draft.paymentMethod);
                 setStep(2);
@@ -492,48 +519,92 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                             {reactivationData ? 'Confirma los datos para reactivar tu donación recurrente.' : 'Tu ayuda hace la diferencia. Elige el monto y la frecuencia de tu donación.'}
                         </p>
 
-                        {/* Monto */}
+                        {/* Selector de Moneda y Monto */}
                         <div className="mb-6">
-                            <label className="block font-bold text-gray-800 mb-3">Monto de la donación</label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                {tiers.map((tier) => (
+                            <div className="flex items-center justify-between mb-3">
+                                <label className="block font-bold text-gray-800">Monto de la donación</label>
+                                
+                                {/* Selector de Moneda (Tabs) */}
+                                {(!campaign || campaign.allowed_currencies === 'all') && paymentMethod === 'card' && !reactivationData && (
+                                    <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setCurrency('Bs');
+                                                if (!customAmount) setSelectedPreset('100');
+                                            }}
+                                            className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                                                currency === 'Bs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                        >
+                                            <span>🇧🇴</span> Bs
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setCurrency('USD');
+                                                if (!customAmount) setSelectedPreset('25');
+                                            }}
+                                            className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                                                currency === 'USD' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                        >
+                                            <span>🇺🇸</span> USD
+                                        </button>
+                                    </div>
+                                )}
+                                {paymentMethod === 'qr' && (
+                                    <span className="text-xs text-gray-600 font-medium bg-gray-100 px-2.5 py-1 rounded-lg">
+                                        🇧🇴 Bolivianos (BOB)
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Montos Predefinidos Inteligentes */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                                {PRESET_TIERS[currency].map((preset) => (
                                     <button
-                                        key={tier.id}
-                                        onClick={() => { setSelectedTier(tier.id); setCustomAmount(''); }}
-                                        className={`py-3 px-2 rounded-xl text-center border-2 transition-all ${
-                                            selectedTier === tier.id
-                                                ? 'border-rosa-principal bg-rosa-claro text-rosa-principal'
-                                                : 'border-gray-200 text-gray-600 hover:border-rosa-principal/50'
+                                        key={preset.amount}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedPreset(preset.amount);
+                                            setCustomAmount('');
+                                        }}
+                                        className={`py-3 px-2 rounded-xl text-center border-2 transition-all font-bold ${
+                                            selectedPreset === preset.amount && !customAmount
+                                                ? 'border-rosa-principal bg-rosa-claro text-rosa-principal shadow-sm'
+                                                : 'border-gray-200 text-gray-700 hover:border-rosa-principal/50 bg-white'
                                         }`}
                                     >
-                                        <div className="font-bold text-lg">${tier.amount}</div>
-                                        <div className="text-xs">{tier.currency_id === 1 ? 'Bs' : 'USD'}</div>
+                                        <div className="text-base sm:text-lg">{preset.label}</div>
                                     </button>
                                 ))}
-                                <div className="relative flex items-center">
-                                    <input
-                                        type="number"
-                                        value={customAmount}
-                                        onChange={(e) => { 
-                                            setCustomAmount(e.target.value); 
-                                            setSelectedTier(null);
-                                        }}
-                                        placeholder="Otro monto"
-                                        className={`w-full h-full py-3 pl-3 pr-16 rounded-xl border-2 text-sm outline-none transition-all ${
-                                            !selectedTier && customAmount ? 'border-rosa-principal bg-rosa-claro text-rosa-principal' : 'border-gray-200 focus:border-rosa-principal'
-                                        }`}
-                                    />
-                                    <button 
-                                        onClick={() => {
-                                            if(!selectedTier) {
-                                                setCustomCurrency(customCurrency === 'Bs' ? 'USD' : 'Bs');
-                                            }
-                                        }}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
-                                    >
-                                        {customCurrency} ▾
-                                    </button>
-                                </div>
+                            </div>
+
+                            {/* Campo de Monto Personalizado */}
+                            <div className="relative flex items-center">
+                                <span className="absolute left-3.5 text-gray-400 font-bold text-sm select-none">
+                                    {currency === 'USD' ? '$' : 'Bs'}
+                                </span>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="any"
+                                    value={customAmount}
+                                    onChange={(e) => {
+                                        setCustomAmount(e.target.value);
+                                        if (e.target.value) setSelectedPreset('');
+                                    }}
+                                    placeholder="Ingresar otro monto personalizado..."
+                                    className={`w-full py-2.5 pl-11 pr-16 rounded-xl border-2 text-sm outline-none transition-all ${
+                                        customAmount
+                                            ? 'border-rosa-principal bg-rosa-claro text-rosa-principal font-bold'
+                                            : 'border-gray-200 bg-white text-gray-800 focus:border-rosa-principal'
+                                    }`}
+                                />
+                                <span className="absolute right-3.5 text-xs font-bold text-gray-400 uppercase select-none">
+                                    {currency === 'USD' ? 'USD' : 'BOB'}
+                                </span>
                             </div>
                         </div>
 

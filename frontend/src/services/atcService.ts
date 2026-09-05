@@ -56,6 +56,8 @@ export interface AtcEnrollmentResponse {
 export interface AtcValidateRequest {
   authenticationTransactionId: string;
   merchantReferenceNumber?: string;
+  card_number?: string;
+  card_type?: string;
 }
 
 export interface AtcValidateResponse {
@@ -150,7 +152,7 @@ async function safePostJson<T>(endpoint: string, bodyData: unknown): Promise<T> 
     }
     return {
       success: false,
-      message: err.message || 'Error de conexión con el servidor de la pasarela de pagos.',
+      message: errorObj?.message || 'Error de conexión con el servidor de la pasarela de pagos.',
     } as unknown as T;
   }
 }

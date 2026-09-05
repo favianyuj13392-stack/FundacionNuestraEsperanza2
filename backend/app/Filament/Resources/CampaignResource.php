@@ -84,6 +84,25 @@ class CampaignResource extends Resource
                         ];
                     })
                     ->default('all')
+                    ->live()
+                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $state === 'qr_only' ? $set('allowed_currencies', 'bob_only') : null)
+                    ->required(),
+                Forms\Components\Select::make('allowed_currencies')
+                    ->label('Monedas Permitidas')
+                    ->options(function (Forms\Get $get) {
+                        $payment = $get('allowed_payment_methods');
+                        if ($payment === 'qr_only') {
+                            return [
+                                'bob_only' => 'Solo Bolivianos (Bs) - Exclusivo para QR BNB',
+                            ];
+                        }
+                        return [
+                            'all' => 'Todas (Bolivianos Bs y Dólares USD)',
+                            'bob_only' => 'Solo Bolivianos (Bs)',
+                            'usd_only' => 'Solo Dólares (USD)',
+                        ];
+                    })
+                    ->default('all')
                     ->required(),
                 Forms\Components\FileUpload::make('image_path')
                     ->image()
