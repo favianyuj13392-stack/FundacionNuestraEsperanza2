@@ -60,6 +60,7 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
     const [selectedPreset, setSelectedPreset] = useState<string>('100');
     const [customAmount, setCustomAmount] = useState<string>('');
     const [currency, setCurrency] = useState<'Bs' | 'USD'>('Bs');
+    const [cardCurrency, setCardCurrency] = useState<'Bs' | 'USD'>('Bs');
     const [frequency, setFrequency] = useState<'once' | 'monthly'>('monthly');
     const [paymentMethod, setPaymentMethod] = useState<'card' | 'qr'>('card');
     const [isAnonymous, setIsAnonymous] = useState(false);
@@ -178,9 +179,13 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
 
                         if (campObj.allowed_currencies === 'bob_only') {
                             setCurrency('Bs');
+                            setCardCurrency('Bs');
+                            setSelectedPreset('100');
                         } else if (campObj.allowed_currencies === 'usd_only') {
                             setCurrency('USD');
+                            setCardCurrency('USD');
                             setPaymentMethod('card');
+                            setSelectedPreset('25');
                         }
                     }
                 }
@@ -198,13 +203,21 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
         fetchOptionsAndCampaign();
     }, [campaignId]);
 
-    // Enforce QR -> Once only and BOB only
+    // Enforce payment method constraints & restore card currency when returning to card
     useEffect(() => {
         if (paymentMethod === 'qr') {
             setFrequency('once');
             setCurrency('Bs');
+        } else if (paymentMethod === 'card') {
+            if (campaign?.allowed_currencies === 'usd_only') {
+                setCurrency('USD');
+            } else if (campaign?.allowed_currencies === 'bob_only') {
+                setCurrency('Bs');
+            } else {
+                setCurrency(cardCurrency);
+            }
         }
-    }, [paymentMethod]);
+    }, [paymentMethod, campaign, cardCurrency]);
 
     // Pre-fill user data (only if NOT in reactivation flow)
     useEffect(() => {
@@ -531,6 +544,7 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                                             type="button"
                                             onClick={() => {
                                                 setCurrency('Bs');
+                                                setCardCurrency('Bs');
                                                 if (!customAmount) setSelectedPreset('100');
                                             }}
                                             className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
@@ -543,6 +557,7 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                                             type="button"
                                             onClick={() => {
                                                 setCurrency('USD');
+                                                setCardCurrency('USD');
                                                 if (!customAmount) setSelectedPreset('25');
                                             }}
                                             className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
@@ -552,6 +567,16 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                                             <span>🇺🇸</span> USD
                                         </button>
                                     </div>
+                                )}
+                                {campaign?.allowed_currencies === 'usd_only' && paymentMethod === 'card' && (
+                                    <span className="text-xs text-blue-700 font-medium bg-blue-50 px-2.5 py-1 rounded-lg">
+                                        🇺🇸 Solo Dólares (USD)
+                                    </span>
+                                )}
+                                {campaign?.allowed_currencies === 'bob_only' && paymentMethod === 'card' && (
+                                    <span className="text-xs text-gray-700 font-medium bg-gray-100 px-2.5 py-1 rounded-lg">
+                                        🇧🇴 Solo Bolivianos (Bs)
+                                    </span>
                                 )}
                                 {paymentMethod === 'qr' && (
                                     <span className="text-xs text-gray-600 font-medium bg-gray-100 px-2.5 py-1 rounded-lg">
@@ -618,7 +643,7 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                                 >
                                     💳 Tarjeta Crédito/Débito
                                 </button>
-                                {!reactivationData && (!campaign || ((campaign.allowed_payment_methods === 'all' || campaign.allowed_payment_methods === 'qr_only') && campaign.allowed_frequencies !== 'monthly_only')) && (
+                                {!reactivationData && (!campaign || ((campaign.allowed_payment_methods === 'all' || campaign.allowed_payment_methods === 'qr_only') && campaign.allowed_frequencies !== 'monthly_only' && campaign.allowed_currencies !== 'usd_only')) && (
                                     <button
                                         onClick={() => setPaymentMethod('qr')}
                                         className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${paymentMethod === 'qr' ? 'bg-white text-rosa-principal shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}

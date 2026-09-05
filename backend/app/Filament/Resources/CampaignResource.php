@@ -72,7 +72,8 @@ class CampaignResource extends Resource
                     ->label('Métodos de Pago Permitidos')
                     ->options(function (Forms\Get $get) {
                         $freq = $get('allowed_frequencies');
-                        if ($freq === 'monthly_only') {
+                        $curr = $get('allowed_currencies');
+                        if ($freq === 'monthly_only' || $curr === 'usd_only') {
                             return [
                                 'card_only' => 'Solo Tarjeta de Crédito/Débito (ATC)',
                             ];
@@ -103,6 +104,8 @@ class CampaignResource extends Resource
                         ];
                     })
                     ->default('all')
+                    ->live()
+                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $state === 'usd_only' ? $set('allowed_payment_methods', 'card_only') : null)
                     ->required(),
                 Forms\Components\FileUpload::make('image_path')
                     ->image()
