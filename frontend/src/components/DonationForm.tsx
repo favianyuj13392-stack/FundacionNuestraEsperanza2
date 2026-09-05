@@ -255,8 +255,8 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
     // --- Handlers ---
     const handleNextToStep2 = async () => {
         setError(null);
-        if (finalAmount <= 0) {
-            setError("Por favor selecciona un monto o introduce uno válido.");
+        if (finalAmount < 1) {
+            setError(`El monto mínimo de donación es de 1 ${currency === 'USD' ? 'USD' : 'Bs'}.`);
             return;
         }
         
