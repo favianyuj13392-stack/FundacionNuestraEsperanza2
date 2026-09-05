@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\DonationTier;
+use App\Models\Donation;
 use App\Models\Qr;
 use App\Services\BnbDonationService;
+use App\Jobs\GenerarCertificadoJob;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PublicDonationController extends Controller
@@ -161,32 +164,80 @@ class PublicDonationController extends Controller
     }
 
     /**
-     * Check status of a QR.
+     * Check status of a QR with real-time BNB verification fallback.
      */
     public function checkStatus($qrId)
     {
-        // In a real scenario, we might query BNB API here if we don't have webhooks.
-        // Spec says: "Polling: Consultar al backend... Endpoint: /main/getQRStatusAsync"
-        // So we should proxy the status check or check our DB if we have a background job updating it.
-        // For now, let's implement a simple proxy to BNB or just return DB status.
-        // The spec says "Polling /api/public/check-status/{qr_id}".
-        
-        // Let's try to query BNB to get the latest status.
-        // We need to add checkStatus to BnbDonationService.
-        
-        // For this iteration, I'll just return the DB status, assuming we might implement the service method later 
-        // or if the user wants strictly the BNB proxy now.
-        // The spec says "Polling: Consultar al backend cada 5 segundos".
-        // Let's add checkStatus to the Service as per spec "Método checkStatus(qrId)".
-        
-        // I'll assume I need to add it to the service. I'll do that in a separate step or update the service file.
-        // For now, let's return a placeholder or DB status.
-        
-        $qr = Qr::where('code', $qrId)->first();
+        $qr = Qr::where('code', $qrId)
+                ->orWhere('external_qr_id', $qrId)
+                ->first();
+
         if (!$qr) {
             return response()->json(['message' => 'QR not found'], 404);
         }
-        
-        return response()->json(['status' => $qr->status]);
+
+        // 1. Fast path: If already marked as paid, return immediately
+        if ($qr->status === 'paid') {
+            return response()->json(['status' => 'paid', 'qrId' => $qrId]);
+        }
+
+        // 2. Active Sync: Query BNB API in real-time to check if money arrived
+        try {
+            $bnbStatus = $this->bnbService->checkStatus($qrId);
+
+            if ($bnbStatus) {
+                $statusId = $bnbStatus['statusId'] ?? ($bnbStatus['status'] ?? null);
+
+                // BNB Spec: statusId 2 = Used / Paid
+                if ($statusId == 2 || $statusId === '2' || (isset($bnbStatus['status']) && strtolower((string)$bnbStatus['status']) === 'paid')) {
+                    DB::transaction(function () use ($qr, $bnbStatus, $qrId) {
+                        $lockedQr = Qr::where('id', $qr->id)->lockForUpdate()->first();
+
+                        if ($lockedQr && $lockedQr->status !== 'paid') {
+                            $lockedQr->status = 'paid';
+                            $lockedQr->voucher_id = $bnbStatus['voucherId'] ?? ($bnbStatus['id'] ?? $lockedQr->voucher_id);
+                            $lockedQr->payment_date = now();
+
+                            $blob = json_decode($lockedQr->bnb_blob, true) ?? [];
+                            $blob['polling_verified_at'] = now()->toIso8601String();
+                            $blob['bnb_status_response'] = $bnbStatus;
+                            $lockedQr->bnb_blob = json_encode($blob);
+                            $lockedQr->save();
+
+                            // Create donation record if not already created
+                            $existingDonation = Donation::where('qr_id', $lockedQr->id)->first();
+                            if (!$existingDonation) {
+                                $donation = Donation::create([
+                                    'campaign_id' => $lockedQr->campaign_id,
+                                    'amount' => $lockedQr->amount,
+                                    'currency_id' => 1, // Default BOB
+                                    'status' => 'succeeded',
+                                    'provider' => 'bnb',
+                                    'qr_id' => $lockedQr->id,
+                                    'donor_id' => $lockedQr->donor_id,
+                                    'is_anonymous' => empty($lockedQr->donor_id),
+                                    'date' => $lockedQr->payment_date,
+                                ]);
+
+                                Log::info("QR {$qrId} marked as paid via Polling Sync. Donation #{$donation->id} created.");
+
+                                if ($donation->donor_id) {
+                                    GenerarCertificadoJob::dispatch($donation);
+                                }
+                            }
+                        }
+                    });
+
+                    return response()->json(['status' => 'paid', 'qrId' => $qrId]);
+                } elseif ($statusId == 3 || $statusId === '3') {
+                    $qr->update(['status' => 'expired']);
+                    return response()->json(['status' => 'expired', 'qrId' => $qrId]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning("Error verifying BNB QR status during polling for QR {$qrId}: " . $e->getMessage());
+        }
+
+        return response()->json(['status' => $qr->status, 'qrId' => $qrId]);
     }
 }
