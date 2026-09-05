@@ -23,10 +23,19 @@ class DonationTierResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('currency_id')
+                    ->label('Moneda')
+                    ->options([
+                        2 => '🇧🇴 Bolivianos (BOB - Bs.)',
+                        1 => '🇺🇸 Dólares Estadounidenses (USD - $)',
+                    ])
+                    ->default(2)
+                    ->required()
+                    ->live(),
                 Forms\Components\TextInput::make('amount')
                     ->required()
                     ->numeric()
-                    ->prefix('Bs')
+                    ->prefix(fn (Forms\Get $get) => $get('currency_id') == 1 ? '$' : 'Bs')
                     ->label('Monto'),
                 Forms\Components\TextInput::make('label')
                     ->required()
@@ -41,9 +50,6 @@ class DonationTierResource extends Resource
                     ->required()
                     ->default(true)
                     ->label('Activo'),
-                // Bloqueado a BOB (2) por seguridad. El Gateway BNB procesa en Bolivianos.
-                Forms\Components\Hidden::make('currency_id')
-                    ->default(2),
             ]);
     }
 
@@ -54,8 +60,16 @@ class DonationTierResource extends Resource
                 Tables\Columns\TextColumn::make('order')
                     ->sortable()
                     ->label('Orden'),
+                Tables\Columns\TextColumn::make('currency.iso_code')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'BOB' => 'warning',
+                        'USD' => 'success',
+                        default => 'gray',
+                    })
+                    ->label('Moneda'),
                 Tables\Columns\TextColumn::make('amount')
-                    ->money('BOB')
+                    ->formatStateUsing(fn ($record) => ($record->currency_id == 1 ? '$ ' : 'Bs ') . number_format((float)$record->amount, 2))
                     ->sortable()
                     ->label('Monto'),
                 Tables\Columns\TextColumn::make('label')
@@ -75,7 +89,12 @@ class DonationTierResource extends Resource
             ])
             ->defaultSort('order', 'asc')
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('currency_id')
+                    ->label('Filtrar por Moneda')
+                    ->options([
+                        2 => 'Bolivianos (BOB)',
+                        1 => 'Dólares (USD)',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

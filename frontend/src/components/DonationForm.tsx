@@ -31,7 +31,7 @@ interface CampaignData {
     [key: string]: unknown;
 }
 
-const PRESET_TIERS: Record<'Bs' | 'USD', Array<{ amount: string; label: string }>> = {
+const DEFAULT_PRESET_TIERS: Record<'Bs' | 'USD', Array<{ amount: string; label: string }>> = {
     Bs: [
         { amount: '50', label: '50 Bs' },
         { amount: '100', label: '100 Bs' },
@@ -57,6 +57,7 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
     const [step, setStep] = useState<1 | 2 | 3>(1);
 
     // Data States
+    const [presetTiers, setPresetTiers] = useState(DEFAULT_PRESET_TIERS);
     const [selectedPreset, setSelectedPreset] = useState<string>('100');
     const [customAmount, setCustomAmount] = useState<string>('');
     const [currency, setCurrency] = useState<'Bs' | 'USD'>('Bs');
@@ -188,6 +189,32 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
                             setSelectedPreset('25');
                         }
                     }
+                }
+
+                // Fetch dynamic tiers from DB
+                try {
+                    const options = await donationService.getOptions();
+                    if (Array.isArray(options) && options.length > 0) {
+                        const bobTiers: Array<{ amount: string; label: string }> = [];
+                        const usdTiers: Array<{ amount: string; label: string }> = [];
+
+                        options.forEach((tier) => {
+                            const amt = parseFloat(tier.amount).toString();
+                            // Currency 1 is USD, Currency 2 is BOB
+                            if (tier.currency_id === 1) {
+                                usdTiers.push({ amount: amt, label: tier.label && !tier.label.includes('$') ? `${tier.label} ($${amt})` : `$${amt} USD` });
+                            } else {
+                                bobTiers.push({ amount: amt, label: tier.label && !tier.label.includes('Bs') ? `${tier.label} (${amt} Bs)` : `${amt} Bs` });
+                            }
+                        });
+
+                        setPresetTiers({
+                            Bs: bobTiers.length > 0 ? bobTiers : DEFAULT_PRESET_TIERS.Bs,
+                            USD: usdTiers.length > 0 ? usdTiers : DEFAULT_PRESET_TIERS.USD,
+                        });
+                    }
+                } catch (tierErr) {
+                    console.error("Failed to fetch donation tiers", tierErr);
                 }
 
                 // Check Draft
@@ -587,7 +614,7 @@ const DonationFormContent: React.FC<DonationFormProps> = ({ onClose, isInModal =
 
                             {/* Montos Predefinidos Inteligentes */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                                {PRESET_TIERS[currency].map((preset) => (
+                                {presetTiers[currency].map((preset) => (
                                     <button
                                         key={preset.amount}
                                         type="button"

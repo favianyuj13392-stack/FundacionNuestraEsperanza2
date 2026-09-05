@@ -26,6 +26,7 @@ class PublicDonationController extends Controller
     public function getOptions()
     {
         $tiers = DonationTier::where('is_active', true)
+            ->with('currency:id,name,iso_code,symbol')
             ->orderBy('order')
             ->get();
             
